@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Listings | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Listings" subtitle="Market listings available now" %}
+
+  <form
+    method="get"
+    class="mt-4 flex flex-wrap items-center gap-3"
+    hx-get="."
+    hx-target="#listing-results"
+    hx-trigger="keyup changed delay:300ms from:input, submit"
+    hx-params="*"
+    hx-push-url="true"
+  >
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="Search player" class="w-full max-w-xs" />
+    <select name="sort" class="w-44">
+      <option value="deadline" {% if filters.sort == "deadline" %}selected{% endif %}>Deadline</option>
+      <option value="asking_price_asc" {% if filters.sort == "asking_price_asc" %}selected{% endif %}>Asking price (Low-High)</option>
+      <option value="recent" {% if filters.sort == "recent" %}selected{% endif %}>Recently added</option>
+    </select>
+    {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+  </form>
+
+  <div id="listing-results" class="mt-6 space-y-4">
+    {% include "marketplace/_listing_results.html" %}
+  </div>
+{% endblock %}

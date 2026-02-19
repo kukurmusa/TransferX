@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Clubs | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Club directory" subtitle="Discover clubs" %}
+
+  <form
+    method="get"
+    class="mt-4 flex flex-wrap items-center gap-3"
+    hx-get="."
+    hx-target="#club-results"
+    hx-trigger="keyup changed delay:300ms from:input, submit"
+    hx-params="*"
+    hx-push-url="true"
+  >
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="Search clubs" class="w-full max-w-xs" />
+    <input type="text" name="country" value="{{ filters.country }}" placeholder="Country" class="w-32" />
+    <input type="text" name="league_name" value="{{ filters.league_name }}" placeholder="League" class="w-36" />
+    <select name="verified_status" class="w-36">
+      <option value="">All statuses</option>
+      <option value="VERIFIED" {% if filters.verified_status == "VERIFIED" %}selected{% endif %}>Verified</option>
+      <option value="PENDING" {% if filters.verified_status == "PENDING" %}selected{% endif %}>Pending</option>
+      <option value="UNVERIFIED" {% if filters.verified_status == "UNVERIFIED" %}selected{% endif %}>Unverified</option>
+    </select>
+    {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+  </form>
+
+  <div id="club-results" class="mt-6 space-y-4">
+    {% include "marketplace/_club_results.html" %}
+  </div>
+{% endblock %}

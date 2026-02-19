@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ club.name }} | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title=club.name subtitle="Club profile" %}
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div class="space-y-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-wrap items-center gap-4">
+          {% if profile and profile.crest_url %}
+            <img src="{{ profile.crest_url }}" alt="{{ club.name }}" class="h-16 w-16 rounded-full border border-slate-200 bg-white" />
+          {% endif %}
+          <div>
+            <div class="text-xl font-semibold text-slate-900">{{ club.name }}</div>
+            <div class="text-sm text-slate-500">League {{ league_id }} | Season {{ season }}</div>
+            {% if profile and profile.venue_name %}
+              <div class="text-sm text-slate-500">{{ profile.venue_name }}{% if profile.venue_city %}, {{ profile.venue_city }}{% endif %}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+          <div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Squad size</div>
+            <div class="text-sm font-semibold text-slate-900">{{ stats.squad_size|default:0 }}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Average age</div>
+            <div class="text-sm font-semibold text-slate-900">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-wide text-slate-400">Venue capacity</div>
+            <div class="text-sm font-semibold text-slate-900">{% if profile and profile.venue_capacity %}{{ profile.venue_capacity }}{% else %}-{% endif %}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-slate-900">Squad</h2>
+          <form method="get" class="flex flex-wrap items-center gap-2">
+            <input type="text" name="q" value="{{ q }}" placeholder="Search players" class="w-full max-w-xs" />
+            <input type="text" name="position" value="{{ position }}" placeholder="Position" class="w-28" />
+            <select name="sort" class="w-36">
+              <option value="form_desc" {% if sort == "form_desc" %}selected{% endif %}>Form (High-Low)</option>
+              <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
+            </select>
+            <input type="hidden" name="league_id" value="{{ league_id }}" />
+            <input type="hidden" name="season" value="{{ season }}" />
+            {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+          </form>
+        </div>
+
+        <div class="mt-4 space-y-2">
+          {% for membership in page_obj.object_list %}
+            {% url 'world:player_detail' membership.player.id as player_url %}
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+              <div>
+                <div class="font-semibold text-slate-900">{{ membership.player.name }}</div>
+                <div class="text-xs text-slate-500">{{ membership.position|default:"-" }}{% if membership.number %} | #{{ membership.number }}{% endif %}</div>
+              </div>
+              <div class="flex items-center gap-2">
+                {% if membership.player.profile and membership.player.profile.form_score >= 75 %}
+                  {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
+                {% endif %}
+                {% include "components/button.html" with text="View" href=player_url variant="secondary" size="sm" %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500">No squad members found.</div>
+          {% endfor %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <div class="flex items-center gap-2">
+              {% if page_obj.has_previous %}
+                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
+              {% endif %}
+              {% if page_obj.has_next %}
+                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-sm font-semibold text-slate-900">Club stats</h3>
+        <div class="mt-3 space-y-2 text-sm text-slate-600">
+          <div class="flex items-center justify-between">
+            <span>Players</span>
+            <span class="font-semibold text-slate-900">{{ stats.squad_size|default:0 }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Average age</span>
+            <span class="font-semibold text-slate-900">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</span>
+          </div>
+        </div>
+        {% if profile and profile.top_form_players %}
+          <div class="mt-4">
+            <div class="text-xs uppercase tracking-wide text-slate-400">Top form players</div>
+            <div class="mt-2 space-y-2">
+              {% for item in profile.top_form_players %}
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-slate-600">{{ item.name }}</span>
+                  <span class="font-semibold text-slate-900">{{ item.form_score|floatformat:1 }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        <div class="mt-4 text-xs text-slate-500">Updated: {% if profile %}{{ profile.updated_at|date:"M d, H:i" }}{% else %}-{% endif %}</div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

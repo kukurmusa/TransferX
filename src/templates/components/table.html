@@ -1,0 +1,20 @@
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-slate-200 text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        {% for header in headers %}
+          <th class="px-4 py-2 text-left font-semibold text-slate-700">{{ header }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 bg-white">
+      {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+            <td class="px-4 py-2 text-slate-600">{{ cell }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

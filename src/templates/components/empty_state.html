@@ -1,0 +1,9 @@
+<div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+  <div class="text-sm font-semibold text-slate-900">{{ title }}</div>
+  {% if description %}<div class="mt-1 text-sm text-slate-500">{{ description }}</div>{% endif %}
+  {% if cta_text and cta_href %}
+    <div class="mt-4">
+      <a href="{{ cta_href }}" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">{{ cta_text }}</a>
+    </div>
+  {% endif %}
+</div>

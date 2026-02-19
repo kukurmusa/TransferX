@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Players | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Player directory" subtitle="Search players and send offers" %}
+
+  <form
+    method="get"
+    class="mt-4 flex flex-wrap items-center gap-3"
+    hx-get="."
+    hx-target="#player-results"
+    hx-trigger="keyup changed delay:300ms from:input, submit"
+    hx-params="*"
+    hx-push-url="true"
+  >
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="Search name" class="w-full max-w-xs" />
+    <input type="text" name="position" value="{{ filters.position }}" placeholder="Position" class="w-28" />
+    <input type="text" name="nationality" value="{{ filters.nationality }}" placeholder="Nationality" class="w-32" />
+    <input type="text" name="min_age" value="{{ filters.min_age }}" placeholder="Min age" class="w-20" />
+    <input type="text" name="max_age" value="{{ filters.max_age }}" placeholder="Max age" class="w-20" />
+    <label class="flex items-center gap-2 text-sm text-slate-600">
+      <input type="checkbox" name="free_agent_only" value="1" {% if filters.free_agent_only %}checked{% endif %} /> Free agents only
+    </label>
+    <label class="flex items-center gap-2 text-sm text-slate-600">
+      <input type="checkbox" name="listed_only" value="1" {% if filters.listed_only %}checked{% endif %} /> Listed only
+    </label>
+    <select name="sort" class="w-44">
+      <option value="performance" {% if filters.sort == "performance" %}selected{% endif %}>Performance</option>
+      <option value="age_asc" {% if filters.sort == "age_asc" %}selected{% endif %}>Age (Low-High)</option>
+      <option value="minutes_desc" {% if filters.sort == "minutes_desc" %}selected{% endif %}>Minutes (High-Low)</option>
+      <option value="rating_desc" {% if filters.sort == "rating_desc" %}selected{% endif %}>Rating (High-Low)</option>
+      <option value="asking_price_asc" {% if filters.sort == "asking_price_asc" %}selected{% endif %}>Asking price (Low-High)</option>
+    </select>
+    {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+  </form>
+
+  <div id="player-results" class="mt-6 space-y-4">
+    {% include "marketplace/_player_results.html" %}
+  </div>
+{% endblock %}

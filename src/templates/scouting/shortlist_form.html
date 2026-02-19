@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}New Shortlist | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Create shortlist" subtitle="Group targets for a position or window" %}
+
+  <div class="mt-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Name</label>
+          <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="mt-1 w-full" />
+          {% if form.name.errors %}
+            <div class="mt-1 text-xs text-rose-600">{{ form.name.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Description</label>
+          <textarea name="description" rows="3" class="mt-1 w-full">{{ form.description.value|default:'' }}</textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          {% include "components/button.html" with text="Create" variant="primary" size="sm" %}
+          {% include "components/button.html" with text="Cancel" href="/scouting/shortlists/" variant="secondary" size="sm" %}
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

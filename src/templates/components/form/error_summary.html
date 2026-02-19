@@ -1,0 +1,12 @@
+{% if form.non_field_errors or form.errors %}
+  <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+    <div class="font-semibold">Please fix the errors below.</div>
+    {% if form.non_field_errors %}
+      <ul class="mt-2 list-disc ps-5">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}

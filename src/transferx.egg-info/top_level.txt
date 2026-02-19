@@ -1,0 +1,5 @@
+apps
+config
+media
+static
+templates

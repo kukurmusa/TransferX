@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Offers | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title=view_title subtitle="Offer inbox" %}
+
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <a class="rounded-lg border border-slate-200 px-3 py-1 text-sm" href="{% url 'marketplace:offer_received' %}">Received</a>
+    <a class="rounded-lg border border-slate-200 px-3 py-1 text-sm" href="{% url 'marketplace:offer_sent' %}">Sent</a>
+  </div>
+
+  <div class="mt-6 space-y-4">
+    {% if page_obj.object_list %}
+      {% for offer in page_obj.object_list %}
+        {% url 'marketplace:offer_detail' offer.id as offer_url %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-lg font-semibold text-slate-900">{{ offer.player.name }}</div>
+              <div class="text-sm text-slate-500">
+                {% if offer.player.current_club %}
+                  Current club: {{ offer.player.current_club.club_name }}
+                {% else %}
+                  Free agent
+                {% endif %}
+              </div>
+              <div class="text-xs text-slate-400">
+                From {{ offer.from_club.club_name }} to {% if offer.to_club %}{{ offer.to_club.club_name }}{% else %}Free agent{% endif %}
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs uppercase tracking-wide text-slate-400">Fee / Wage</div>
+              <div class="text-sm font-semibold text-slate-900">GBP {{ offer.fee_amount|default:"-" }} / GBP {{ offer.wage_weekly|default:"-" }}</div>
+              {% include "components/badge.html" with text=offer.get_status_display variant="neutral" size="sm" %}
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+            <span>{% if offer.expires_at %}Expires {{ offer.expires_at|date:"M d, H:i" }}{% else %}No expiry{% endif %}</span>
+            {% include "components/button.html" with text="View" href=offer_url variant="secondary" size="sm" %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      {% include "components/empty_state.html" with title="No offers" description="Your inbox is empty." %}
+    {% endif %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

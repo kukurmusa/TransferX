@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}World Players | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="World players" subtitle="Profiles built from league data" %}
+
+  <form method="get" class="mt-4 flex flex-wrap items-center gap-3">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search players" class="w-full max-w-xs" />
+    <input type="text" name="position" value="{{ position }}" placeholder="Position" class="w-28" />
+    <input type="text" name="min_form" value="{{ min_form }}" placeholder="Min form" class="w-24" />
+    <select name="club" class="w-44">
+      <option value="">All clubs</option>
+      {% for club in clubs %}
+        <option value="{{ club.id }}" {% if club_id|stringformat:"s" == club.id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="sort" class="w-36">
+      <option value="form_desc" {% if sort == "form_desc" %}selected{% endif %}>Form (High-Low)</option>
+      <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
+    </select>
+    <input type="text" name="league_id" value="{{ league_id }}" placeholder="League ID" class="w-32" />
+    <input type="text" name="season" value="{{ season }}" placeholder="Season" class="w-24" />
+    {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+  </form>
+
+  <div class="mt-6 space-y-4">
+    {% if page_obj.object_list %}
+      {% for profile in page_obj.object_list %}
+        {% url 'world:player_detail' profile.player.id as player_url %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              {% if profile.photo_url %}
+                <img src="{{ profile.photo_url }}" alt="{{ profile.player.name }}" class="h-12 w-12 rounded-full border border-slate-200 bg-white" />
+              {% endif %}
+              <div>
+                <div class="text-lg font-semibold text-slate-900">{{ profile.player.name }}</div>
+                <div class="text-sm text-slate-500">{{ profile.position|default:"-" }} | Age {{ profile.age|default:"-" }}</div>
+                <div class="text-xs text-slate-400">Club: {{ profile.current_club.name|default:"-" }}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs uppercase tracking-wide text-slate-400">Form score</div>
+              <div class="text-sm font-semibold text-slate-900">{% if profile.form_score %}{{ profile.form_score|floatformat:1 }}{% else %}-{% endif %}</div>
+              {% if profile.form_score and profile.form_score >= 75 %}
+                {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
+              {% endif %}
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+            <span>Minutes: {{ profile.minutes|default:"-" }} | Goals: {{ profile.goals|default:"-" }} | Assists: {{ profile.assists|default:"-" }}</span>
+            {% include "components/button.html" with text="View" href=player_url variant="secondary" size="sm" %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      {% include "components/empty_state.html" with title="No players found" description="Try different filters." %}
+    {% endif %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

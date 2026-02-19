@@ -1,0 +1,19 @@
+{% if my_bids %}
+  <ul class="divide-y divide-slate-100">
+    {% for bid in my_bids|slice:":6" %}
+      {% url 'auctions:detail' bid.auction.id as auction_url %}
+      <li class="py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-slate-900">{{ bid.auction.player.name }}</div>
+            <div class="text-xs text-slate-500">Offer: GBP {{ bid.amount }} | {{ bid.get_status_display }}</div>
+          </div>
+          <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="{{ auction_url }}">View</a>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  {% url 'auctions:list' as auctions_list_url %}
+  {% include "components/empty_state.html" with title="No offers yet" description="Browse listings and place your first offer." cta_text="Browse listings" cta_href=auctions_list_url %}
+{% endif %}

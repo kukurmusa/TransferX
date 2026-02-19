@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Create Listing | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Create Listing" subtitle="List a player for offers" %}
+
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {% include "components/form/error_summary.html" with form=form %}
+      {% include "components/form/field.html" with field=form.player %}
+      {% include "components/form/field.html" with field=form.deadline help_text="Set a deadline for offers." %}
+      {% include "components/form/field.html" with field=form.reserve_price help_text="Optional. Visible only to the seller." %}
+      {% include "components/form/field.html" with field=form.min_increment help_text="Optional. Enforced after the first offer." %}
+
+      <div class="flex flex-wrap items-center gap-3 pt-2">
+        {% include "components/button.html" with text="Create listing" variant="primary" size="md" %}
+        {% url 'auctions:list' as auctions_list_url %}
+        {% include "components/button.html" with text="Cancel" href=auctions_list_url variant="secondary" size="md" %}
+      </div>
+    </form>
+  </div>
+{% endblock %}

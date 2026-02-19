@@ -1,0 +1,14 @@
+{% if interest %}
+  {% if interest.level == "PRIORITY" %}
+    {% include "components/badge.html" with text="Priority" variant="danger" size="sm" %}
+  {% elif interest.level == "INTERESTED" %}
+    {% include "components/badge.html" with text="Interested" variant="warning" size="sm" %}
+  {% else %}
+    {% include "components/badge.html" with text="Watching" variant="info" size="sm" %}
+  {% endif %}
+  {% if interest.stage %}
+    {% include "components/badge.html" with text=interest.get_stage_display variant="neutral" size="sm" %}
+  {% endif %}
+{% else %}
+  {% include "components/badge.html" with text="No interest set" variant="neutral" size="sm" %}
+{% endif %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace Listings | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Marketplace listings" subtitle="Open transfer opportunities" %}
+
+  <div class="mt-6 space-y-4">
+    {% if page_obj.object_list %}
+      {% for listing in page_obj.object_list %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-lg font-semibold text-slate-900">{{ listing.player.name }}</div>
+              <div class="text-sm text-slate-500">{{ listing.get_listing_type_display }} | {{ listing.get_visibility_display }}</div>
+              <div class="text-xs text-slate-400">Club: {{ listing.listed_by_club.club_name|default:"Free agent" }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs uppercase tracking-wide text-slate-400">Asking</div>
+              <div class="text-sm font-semibold text-slate-900">{% if listing.asking_price %}GBP {{ listing.asking_price }}{% else %}-{% endif %}</div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      {% include "components/empty_state.html" with title="No listings" description="Listings will appear here once clubs publish them." %}
+    {% endif %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

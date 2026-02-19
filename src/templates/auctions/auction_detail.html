@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load roles %}
+
+{% block title %}Listing | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title=auction.player.name subtitle="Listing details" %}
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div class="space-y-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div class="text-sm text-slate-500">Player</div>
+            <div class="text-2xl font-semibold text-slate-900">{{ auction.player.name }}</div>
+            <div class="text-sm text-slate-500">
+              {{ auction.player.get_position_display|default:"-" }} | Age {{ auction.player.age|default:"-" }}
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            {% include "components/badge.html" with text=auction.get_status_display variant="neutral" size="sm" %}
+            {% if reserve_met is not None %}
+              {% if reserve_met %}
+                {% include "components/badge.html" with text="Reserve met" variant="success" size="sm" %}
+              {% else %}
+                {% include "components/badge.html" with text="Reserve not met" variant="warning" size="sm" %}
+              {% endif %}
+            {% endif %}
+            {% if player_form and player_form.form_score >= 75 %}
+              {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-400">Deadline</div>
+            <div class="mt-1 text-sm font-semibold text-slate-900">{{ auction.deadline|date:"M d, H:i" }}</div>
+            <div class="mt-1 text-xs text-slate-500">
+              <span id="countdown" data-deadline-iso="{{ auction.deadline|date:"c" }}">--</span>
+            </div>
+          </div>
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-400">Current Best Offer</div>
+            <div class="mt-1 text-sm font-semibold text-slate-900">{% if best_bid %}GBP {{ best_bid }}{% else %}-{% endif %}</div>
+            <div class="mt-1 text-xs text-slate-500">Active offers: {{ bid_count }}</div>
+          </div>
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div class="text-xs uppercase tracking-wide text-slate-400">Minimum Next Offer</div>
+            <div class="mt-1 text-sm font-semibold text-slate-900">{% if minimum_next %}GBP {{ minimum_next }}{% else %}-{% endif %}</div>
+            <div class="mt-1 text-xs text-slate-500">Status: {{ auction.get_status_display }}</div>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-slate-100 bg-white p-4">
+          <div class="text-sm font-semibold text-slate-900">Player form</div>
+          {% if player_form %}
+            <div class="mt-3 grid gap-3 sm:grid-cols-3">
+              <div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Form score</div>
+                <div class="text-sm font-semibold text-slate-900">{{ player_form.form_score|floatformat:1 }}</div>
+              </div>
+              <div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Avg rating</div>
+                <div class="text-sm font-semibold text-slate-900">{{ player_form.avg_rating|default:"-" }}</div>
+              </div>
+              <div>
+                <div class="text-xs uppercase tracking-wide text-slate-400">Goals / assists</div>
+                <div class="text-sm font-semibold text-slate-900">{{ player_form.goals|default:"0" }} / {{ player_form.assists|default:"0" }}</div>
+              </div>
+            </div>
+          {% else %}
+            <div class="mt-2 text-sm text-slate-500">No form available yet.</div>
+          {% endif %}
+          <div class="mt-3 text-xs text-slate-500">
+            Stats updated: {% if latest_snapshot %}{{ latest_snapshot.as_of|date:"M d, H:i" }}{% else %}-{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-slate-900">Offer ladder</h2>
+          <span class="text-xs text-slate-500">Auto refreshes</span>
+        </div>
+        <div
+          id="bid-ladder"
+          class="mt-4"
+          hx-get="{% url 'auctions:bids_partial' auction.id %}"
+          hx-trigger="load, every 5s"
+          hx-swap="innerHTML"
+        >
+          {% include "auctions/_bid_ladder.html" with bids=bid_ladder best_bid=best_bid minimum_next=minimum_next reserve_met=reserve_met %}
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-slate-900">Timeline</h2>
+          <span class="text-xs text-slate-500">Most recent at the bottom</span>
+        </div>
+        <div class="mt-4">
+          {% if events %}
+            {% include "components/timeline.html" with events=events %}
+          {% else %}
+            <div class="text-sm text-slate-500">No events yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6 lg:sticky lg:top-24 lg:self-start">
+      {% if user|user_is_buyer %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">Place an offer</h2>
+            {% if auction.status != 'OPEN' %}
+              {% include "components/badge.html" with text="Closed" variant="neutral" size="sm" %}
+            {% endif %}
+          </div>
+
+          {% if not can_bid %}
+            <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              Offers are closed or you cannot make an offer on this listing.
+            </div>
+          {% endif %}
+
+          {% if buyer_active_bid and best_bid and buyer_active_bid.amount < best_bid %}
+            <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              You have been outbid. Current best offer is GBP {{ best_bid }}.
+            </div>
+          {% endif %}
+
+          {% if finance %}
+            <div class="mt-4 space-y-1 text-sm text-slate-600">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">Transfer remaining</span>
+                <span class="font-semibold text-slate-900">GBP {{ finance.transfer_remaining }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">Wage remaining (weekly)</span>
+                <span class="font-semibold text-slate-900">GBP {{ finance.wage_remaining_weekly }}</span>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="mt-4 space-y-1 text-sm text-slate-600">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Current best offer</span>
+              <span class="font-semibold text-slate-900">{% if best_bid %}GBP {{ best_bid }}{% else %}-{% endif %}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Minimum next offer</span>
+              <span class="font-semibold text-slate-900">{% if minimum_next %}GBP {{ minimum_next }}{% else %}-{% endif %}</span>
+            </div>
+          </div>
+
+          <form class="mt-4 space-y-4" method="post" action="{% url 'auctions:place_bid' auction.id %}">
+            {% csrf_token %}
+            {% include "components/form/error_summary.html" with form=bid_form %}
+            {% include "components/form/field.html" with field=bid_form.amount %}
+            {% include "components/form/field.html" with field=bid_form.wage_offer_weekly help_text="Weekly wage offer for the player." %}
+            {% if bid_form.notes %}
+              {% include "components/form/field.html" with field=bid_form.notes help_text="Optional note to the seller." %}
+            {% endif %}
+
+            {% if auction.status == 'OPEN' and can_bid %}
+              {% include "components/button.html" with text="Submit offer" variant="primary" size="md" %}
+            {% else %}
+              <button type="button" class="inline-flex w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-500" disabled>
+                Offers closed
+              </button>
+            {% endif %}
+          </form>
+        </div>
+      {% endif %}
+
+      {% if is_owner %}
+        {% url 'auctions:bids_csv' auction.id as bids_csv_url %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">Seller controls</h2>
+            {% include "components/button.html" with text="Export CSV" href=bids_csv_url variant="secondary" size="sm" %}
+          </div>
+
+          <div class="mt-3 space-y-1 text-sm text-slate-600">
+            {% if auction.reserve_price %}
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">Reserve price</span>
+                <span class="font-semibold text-slate-900">GBP {{ auction.reserve_price }}</span>
+              </div>
+            {% endif %}
+            {% if reserve_met is not None %}
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">Reserve met</span>
+                <span class="font-semibold text-slate-900">{% if reserve_met %}Yes{% else %}No{% endif %}</span>
+              </div>
+            {% endif %}
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Total offers</span>
+              <span class="font-semibold text-slate-900">{{ bid_count }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Offer velocity</span>
+              <span class="font-semibold text-slate-900">{{ bids_per_hour }} offers/hour</span>
+            </div>
+          </div>
+
+          <div
+            id="seller-bids"
+            class="mt-4"
+            hx-get="{% url 'auctions:seller_bids_partial' auction.id %}"
+            hx-trigger="load, every 5s"
+            hx-swap="innerHTML"
+          >
+            {% include "auctions/_seller_bid_table.html" with bids=seller_bids auction=auction %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    (function () {
+      const countdown = document.getElementById("countdown");
+      if (!countdown) return;
+      const deadlineIso = countdown.dataset.deadlineIso;
+      if (!deadlineIso) return;
+      const deadline = new Date(deadlineIso).getTime();
+
+      function updateCountdown() {
+        const now = Date.now();
+        const diff = deadline - now;
+        if (diff <= 0) {
+          countdown.textContent = "Ended";
+          return;
+        }
+        const totalSeconds = Math.floor(diff / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        countdown.textContent = `${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    })();
+  </script>
+{% endblock %}

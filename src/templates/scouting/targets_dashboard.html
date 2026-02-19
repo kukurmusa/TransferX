@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}My Targets | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="My Targets" subtitle="Recruitment overview for your club" %}
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">Shortlists</h2>
+      <div class="mt-4 space-y-3">
+        {% if shortlists %}
+          {% for shortlist in shortlists %}
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <a class="font-medium text-slate-900" href="/scouting/shortlists/{{ shortlist.id }}/">{{ shortlist.name }}</a>
+              <span>{{ shortlist.item_count }} players</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-sm text-slate-500">No shortlists yet.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">Recently updated</h2>
+      <div class="mt-4 space-y-3">
+        {% if recent_items %}
+          {% for item in recent_items %}
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <span class="font-medium text-slate-900">{{ item.player.name }}</span>
+              <span>{{ item.shortlist.name }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-sm text-slate-500">No recent updates.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">Offers expiring soon</h2>
+      <div class="mt-4 space-y-3">
+        {% if expiring_offers %}
+          {% for offer in expiring_offers %}
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <a class="font-medium text-slate-900" href="/marketplace/offers/{{ offer.id }}/">{{ offer.player.name }}</a>
+              <span>{{ offer.expires_at|date:"M d, H:i" }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-sm text-slate-500">No expiring offers.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">Watched now available</h2>
+      <div class="mt-4 space-y-3">
+        {% if watched_available %}
+          {% for entry in watched_available %}
+            <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+              <span class="font-medium text-slate-900">{{ entry.player.name }}</span>
+              <div class="flex flex-wrap items-center gap-2">
+                {% if entry.has_open_listing %}
+                  {% include "components/badge.html" with text="Listed" variant="info" size="sm" %}
+                {% endif %}
+                {% if entry.is_free_agent %}
+                  {% include "components/badge.html" with text="Free agent" variant="warning" size="sm" %}
+                {% endif %}
+                {% if entry.open_to_offers %}
+                  {% include "components/badge.html" with text="Open to offers" variant="success" size="sm" %}
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-sm text-slate-500">No watched players available right now.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

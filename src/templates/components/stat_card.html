@@ -1,0 +1,5 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+  <div class="text-xs uppercase tracking-wide text-slate-500">{{ label }}</div>
+  <div class="mt-2 text-2xl font-semibold text-slate-900">{% if prefix %}{{ prefix }} {% endif %}{{ value }}</div>
+  {% if subtext %}<div class="mt-1 text-sm text-slate-500">{{ subtext }}</div>{% endif %}
+</div>

@@ -1,0 +1,31 @@
+<div class="space-y-3">
+  <div class="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+    {% if best_bid %}
+      <div>Current best offer: <span class="font-semibold text-slate-900">GBP {{ best_bid }}</span></div>
+    {% endif %}
+    {% if minimum_next %}
+      <div>Minimum next offer: <span class="font-semibold text-slate-900">GBP {{ minimum_next }}</span></div>
+    {% endif %}
+    {% if reserve_met is not None %}
+      <div>Reserve: <span class="font-semibold text-slate-900">{% if reserve_met %}met{% else %}not met{% endif %}</span></div>
+    {% endif %}
+  </div>
+
+  {% if bids %}
+    <div class="space-y-2">
+      {% for bid in bids %}
+        <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm {% if forloop.first %}border-slate-200 bg-slate-50{% endif %}">
+          <div class="font-semibold text-slate-900">
+            GBP {{ bid.amount }}
+            {% if bid.wage_offer_weekly is not None %}
+            <span class="ml-2 text-xs font-normal text-slate-500">Wage GBP {{ bid.wage_offer_weekly }}</span>
+            {% endif %}
+          </div>
+          <div class="text-xs text-slate-500">{{ bid.created_at|date:"M d, H:i" }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500">No offers yet.</div>
+  {% endif %}
+</div>

@@ -1,0 +1,15 @@
+{% if hot_players %}
+  <ul class="divide-y divide-slate-100">
+    {% for form in hot_players %}
+      <li class="py-3 flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold text-slate-900">{{ form.player.name }}</div>
+          <div class="text-xs text-slate-500">Form: {{ form.form_score|floatformat:1 }}</div>
+        </div>
+        {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  {% include "components/empty_state.html" with title="No form data" description="Run form computation after syncing stats." %}
+{% endif %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ shortlist.name }} | TransferX{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title=shortlist.name subtitle="Shortlist detail" %}
+
+  <div class="mt-4 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div class="space-y-6">
+      <form method="get" class="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <input type="text" name="q" value="{{ filters.q }}" placeholder="Search player" class="w-full max-w-xs" />
+        <select name="priority" class="w-28">
+          <option value="">Priority</option>
+          <option value="1" {% if filters.priority == "1" %}selected{% endif %}>P1</option>
+          <option value="2" {% if filters.priority == "2" %}selected{% endif %}>P2</option>
+          <option value="3" {% if filters.priority == "3" %}selected{% endif %}>P3</option>
+          <option value="4" {% if filters.priority == "4" %}selected{% endif %}>P4</option>
+          <option value="5" {% if filters.priority == "5" %}selected{% endif %}>P5</option>
+        </select>
+        <select name="sort" class="w-32">
+          <option value="priority" {% if filters.sort == "priority" %}selected{% endif %}>Priority</option>
+          <option value="updated" {% if filters.sort == "updated" %}selected{% endif %}>Last updated</option>
+        </select>
+        {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
+      </form>
+
+      <div class="space-y-4">
+        {% if page_obj.object_list %}
+          {% for item in page_obj.object_list %}
+              <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div class="text-lg font-semibold text-slate-900">{{ item.player.name }}</div>
+                    <div class="text-sm text-slate-500">
+                      {% if item.player.current_club %}{{ item.player.current_club.club_name }}{% else %}Free agent{% endif %}
+                    </div>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      {% include "scouting/_interest_badge.html" with interest=item.interest %}
+                      {% if item.player_id in open_listing_ids %}
+                        {% include "components/badge.html" with text="Listed" variant="info" size="sm" %}
+                      {% endif %}
+                      {% if item.player.current_club_id is None %}
+                        {% include "components/badge.html" with text="Free agent" variant="warning" size="sm" %}
+                      {% endif %}
+                      {% if item.player.open_to_offers and item.player.current_club_id is None %}
+                        {% include "components/badge.html" with text="Open to offers" variant="success" size="sm" %}
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="text-right text-sm text-slate-500">
+                    Priority P{{ item.priority }}
+                    <div class="text-xs">Updated {{ item.updated_at|date:"M d, H:i" }}</div>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                  <form method="post" action="/scouting/shortlist-items/{{ item.id }}/update/" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="/scouting/shortlists/{{ shortlist.id }}/" />
+                    <select name="priority" class="text-xs">
+                      <option value="1" {% if item.priority == 1 %}selected{% endif %}>P1</option>
+                      <option value="2" {% if item.priority == 2 %}selected{% endif %}>P2</option>
+                      <option value="3" {% if item.priority == 3 %}selected{% endif %}>P3</option>
+                      <option value="4" {% if item.priority == 4 %}selected{% endif %}>P4</option>
+                      <option value="5" {% if item.priority == 5 %}selected{% endif %}>P5</option>
+                    </select>
+                    <button type="submit" class="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">
+                      Update
+                    </button>
+                  </form>
+                  <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="/players/market/{{ item.player.id }}/">
+                    View player
+                  </a>
+                  <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/remove/">
+                    {% csrf_token %}
+                    <input type="hidden" name="player_id" value="{{ item.player.id }}" />
+                    <input type="hidden" name="next" value="/scouting/shortlists/{{ shortlist.id }}/" />
+                    <button type="submit" class="text-xs font-medium text-rose-600">Remove</button>
+                  </form>
+                </div>
+                </div>
+          {% endfor %}
+        {% else %}
+          {% include "components/empty_state.html" with title="No players yet" description="Add players to this shortlist from the player directory." %}
+        {% endif %}
+      </div>
+
+      {% if page_obj.paginator.num_pages > 1 %}
+        <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+          <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+              <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+              <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}">Next</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="space-y-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Shortlist settings</h2>
+        <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/edit/" class="mt-4 space-y-3">
+          {% csrf_token %}
+          <div>
+            <label class="text-sm font-medium text-slate-700">Name</label>
+            <input type="text" name="name" value="{{ form.name.value|default:shortlist.name }}" class="mt-1 w-full" />
+          </div>
+          <div>
+            <label class="text-sm font-medium text-slate-700">Description</label>
+            <textarea name="description" rows="3" class="mt-1 w-full">{{ form.description.value|default:shortlist.description }}</textarea>
+          </div>
+          <div class="flex items-center gap-2">
+            {% include "components/button.html" with text="Save" variant="primary" size="sm" %}
+          </div>
+        </form>
+        <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/delete/" class="mt-4">
+          {% csrf_token %}
+          <button type="submit" class="text-xs font-medium text-rose-600">Delete shortlist</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

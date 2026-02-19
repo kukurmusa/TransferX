@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load roles %}
+
+{% block title %}Listings | TransferX{% endblock %}
+
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Listings</h1>
+      <p class="text-sm text-slate-500">Browse open listings and current offers.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <form method="get">
+        <select class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" name="sort" onchange="this.form.submit()">
+          <option value="deadline" {% if sort == "deadline" %}selected{% endif %}>Deadline (Soon)</option>
+          <option value="form_desc" {% if sort == "form_desc" %}selected{% endif %}>Form (High-Low)</option>
+        </select>
+      </form>
+      {% if user|user_is_seller %}
+        {% include "components/button.html" with text="Create Listing" href="/auctions/new/" variant="primary" size="md" %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-6 space-y-4">
+    {% if auctions %}
+      {% for auction in auctions %}
+        {% url 'auctions:detail' auction.id as auction_url %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-lg font-semibold text-slate-900">{{ auction.player.name }}</div>
+              <div class="text-sm text-slate-500">Deadline: {{ auction.deadline|date:"M d, H:i" }}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              {% include "components/badge.html" with text=auction.get_status_display variant="neutral" size="sm" %}
+              {% if auction.reserve_met is not None %}
+                {% if auction.reserve_met %}
+                  {% include "components/badge.html" with text="Reserve met" variant="success" size="sm" %}
+                {% else %}
+                  {% include "components/badge.html" with text="Reserve not met" variant="warning" size="sm" %}
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-400">Current Best Offer</div>
+              <div class="text-sm font-semibold text-slate-900">{% if auction.best_bid_amount %}GBP {{ auction.best_bid_amount }}{% else %}-{% endif %}</div>
+            </div>
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-400">Minimum Next Offer</div>
+              <div class="text-sm font-semibold text-slate-900">
+                {% if auction.minimum_next_bid %}GBP {{ auction.minimum_next_bid }}{% else %}-{% endif %}
+              </div>
+            </div>
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-400">Form Score</div>
+              <div class="text-sm font-semibold text-slate-900">
+                {% if auction.player.form %}{{ auction.player.form.form_score|floatformat:1 }}{% else %}-{% endif %}
+                {% if auction.player.form and auction.player.form.form_score >= 75 %}
+                  <span class="ml-2 inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">Hot</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-slate-500">{{ auction.bid_count }} offers</div>
+            {% include "components/button.html" with text="View" href=auction_url variant="secondary" size="sm" %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      {% include "components/empty_state.html" with title="No auctions found" description="Check back soon or create a new auction." %}
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load roles %}
+
+{% block title %}Dashboard | TransferX{% endblock %}
+
+{% block content %}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Dashboard</h1>
+      <p class="text-sm text-slate-500">Live auction activity and club insights.</p>
+    </div>
+    {% if user|user_is_seller %}
+      {% url 'auctions:create' as auctions_create_url %}
+      {% include "components/button.html" with text="Create Listing" href=auctions_create_url variant="primary" size="md" %}
+    {% endif %}
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    {% include "components/card.html" with title="Active Listings" body_template="home/_active_auctions.html" %}
+
+    {% if user|user_is_seller %}
+      {% include "components/card.html" with title="My Listings" body_template="home/_my_auctions.html" %}
+    {% endif %}
+
+    {% if user|user_is_buyer %}
+      {% include "components/card.html" with title="My Active Offers" body_template="home/_my_bids.html" %}
+    {% endif %}
+
+    {% include "components/card.html" with title="Hot Players" body_template="home/_hot_players.html" %}
+  </div>
+{% endblock %}
