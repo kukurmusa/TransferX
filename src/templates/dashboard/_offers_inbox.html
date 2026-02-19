@@ -1,0 +1,79 @@
+{% load humanize %}
+<div class="divide-y divide-slate-100">
+  {% for row in offer_rows %}
+  <div class="px-5 py-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3">
+        {% with pos=row.player.position %}
+        <span class="inline-flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold
+          {% if pos == 'GK' %}bg-amber-100 text-amber-700
+          {% elif pos == 'DEF' %}bg-sky-100 text-sky-700
+          {% elif pos == 'MID' %}bg-emerald-100 text-emerald-700
+          {% elif pos == 'FWD' %}bg-rose-100 text-rose-700
+          {% else %}bg-slate-100 text-slate-700{% endif %}">
+          {{ pos|default:"--" }}
+        </span>
+        {% endwith %}
+        <div>
+          <div class="text-sm font-medium text-slate-900">{{ row.player.name }}</div>
+          <div class="text-xs text-slate-500">
+            {% if row.counterparty %}{{ row.counterparty.club_name }}{% else %}Unknown{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-shrink-0 items-center gap-2">
+        {% if row.status_label == "Action Needed" %}
+          <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Action Needed</span>
+        {% elif row.status_label == "Countered" %}
+          <span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">Countered</span>
+        {% else %}
+          <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Awaiting Reply</span>
+        {% endif %}
+        {% if row.expires_at_iso %}
+          <span data-deadline="{{ row.expires_at_iso }}"
+                class="min-w-[4rem] text-right font-mono text-xs text-slate-500"></span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+      {% if row.offer.fee_amount %}
+        <span>Fee: &pound;{{ row.offer.fee_amount|floatformat:0|intcomma }}</span>
+      {% endif %}
+      {% if row.offer.wage_weekly %}
+        <span>Wage: &pound;{{ row.offer.wage_weekly|floatformat:0|intcomma }}pw</span>
+      {% endif %}
+      <div class="ml-auto flex gap-1.5">
+        {% if row.is_incoming and row.status_label != "Awaiting Reply" %}
+          <form method="post" action="{% url 'marketplace:offer_accept' row.offer.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-emerald-700">
+              Accept
+            </button>
+          </form>
+          <a href="{% url 'marketplace:offer_counter' row.offer.pk %}"
+             class="rounded-lg bg-sky-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-sky-700">
+            Counter
+          </a>
+          <form method="post" action="{% url 'marketplace:offer_reject' row.offer.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-rose-700">
+              Reject
+            </button>
+          </form>
+        {% else %}
+          <a href="{% url 'marketplace:offer_detail' row.offer.pk %}"
+             class="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-200">
+            View
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="px-5 py-8">
+    {% include "components/empty_state.html" with title="No active offers" description="You have no offers requiring attention." %}
+  </div>
+  {% endfor %}
+</div>
