@@ -2,25 +2,29 @@
 
 {% block title %}{{ club.club_name }} | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title=club.club_name subtitle="Club profile" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ club.club_name }}</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Club profile</p>{% endblock %}
 
-  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
     <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {# Club info #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <div class="flex flex-wrap items-center gap-4">
           {% if club.crest_url %}
-            <img src="{{ club.crest_url }}" alt="{{ club.club_name }}" class="h-16 w-16 rounded-full border border-slate-200 bg-white" />
+            <img src="{{ club.crest_url }}" alt="{{ club.club_name }}" class="h-16 w-16 rounded-full bg-slate-800 ring-1 ring-white/[0.08]" />
           {% endif %}
           <div>
-            <div class="text-xl font-semibold text-slate-900">{{ club.club_name }}</div>
-            <div class="text-sm text-slate-500">{{ club.league_name|default:"-" }} | {{ club.country|default:"-" }}</div>
-            {% if club.verified_status == "VERIFIED" %}
-              {% include "components/badge.html" with text="Verified" variant="success" size="sm" %}
-            {% endif %}
+            <div class="text-xl font-semibold text-white">{{ club.club_name }}</div>
+            <div class="text-sm text-slate-400">{{ club.league_name|default:"-" }} | {{ club.country|default:"-" }}</div>
+            <div class="mt-1.5">
+              {% if club.verified_status == "VERIFIED" %}
+                {% include "components/badge.html" with text="Verified" variant="success" size="sm" %}
+              {% endif %}
+            </div>
           </div>
         </div>
-        <div class="mt-4 text-sm text-slate-500">
+        <div class="mt-4 text-sm text-slate-400">
           {% if show_contact %}
             Contact: {{ club.contact_email|default:"-" }}
           {% else %}
@@ -29,23 +33,25 @@
         </div>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {# Squad #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-slate-900">Squad</h2>
+          <h2 class="text-lg font-semibold text-white">Squad</h2>
           <form method="get" class="flex flex-wrap items-center gap-2">
             <input type="text" name="q" value="{{ q }}" placeholder="Search players" class="w-full max-w-xs" />
             <input type="text" name="position" value="{{ position }}" placeholder="Position" class="w-28" />
             {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
           </form>
         </div>
-        <div class="mt-4 space-y-2">
+        <div class="mt-4 space-y-1">
           {% for player in squad_page.object_list %}
-            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+            <div class="flex items-center justify-between rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.03]
+              {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
               <div>
-                <div class="font-semibold text-slate-900">{{ player.name }}</div>
+                <div class="font-semibold text-white">{{ player.name }}</div>
                 <div class="text-xs text-slate-500">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
               </div>
-              <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="/players/market/{{ player.id }}/">View</a>
+              {% include "components/button.html" with text="View" href="/players/market/"|add:player.id|add:"/" variant="ghost" size="sm" %}
             </div>
           {% empty %}
             <div class="text-sm text-slate-500">No players found.</div>
@@ -57,10 +63,10 @@
             <span>Page {{ squad_page.number }} of {{ squad_page.paginator.num_pages }}</span>
             <div class="flex items-center gap-2">
               {% if squad_page.has_previous %}
-                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ squad_page.previous_page_number }}&q={{ q }}&position={{ position }}">Prev</a>
+                <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline" href="?page={{ squad_page.previous_page_number }}&q={{ q }}&position={{ position }}">Prev</a>
               {% endif %}
               {% if squad_page.has_next %}
-                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ squad_page.next_page_number }}&q={{ q }}&position={{ position }}">Next</a>
+                <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline" href="?page={{ squad_page.next_page_number }}&q={{ q }}&position={{ position }}">Next</a>
               {% endif %}
             </div>
           </div>
@@ -68,17 +74,18 @@
       </div>
     </div>
 
-    <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Open listings</h2>
-        <div class="mt-4 space-y-3">
+    <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+      {# Open listings #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <h2 class="text-lg font-semibold text-white">Open listings</h2>
+        <div class="mt-4 space-y-1">
           {% for listing in listings %}
-            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+            <div class="flex items-center justify-between rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
               <div>
-                <div class="font-semibold text-slate-900">{{ listing.player.name }}</div>
+                <div class="font-semibold text-white">{{ listing.player.name }}</div>
                 <div class="text-xs text-slate-500">Asking: {% if listing.asking_price %}GBP {{ listing.asking_price }}{% else %}-{% endif %}</div>
               </div>
-              <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="/listings/{{ listing.id }}/">View</a>
+              {% include "components/button.html" with text="View" href="/listings/"|add:listing.id|add:"/" variant="ghost" size="sm" %}
             </div>
           {% empty %}
             <div class="text-sm text-slate-500">No open listings.</div>

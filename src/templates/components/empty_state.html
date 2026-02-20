@@ -1,9 +1,15 @@
-<div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-  <div class="text-sm font-semibold text-slate-900">{{ title }}</div>
-  {% if description %}<div class="mt-1 text-sm text-slate-500">{{ description }}</div>{% endif %}
+{# Empty state component — dark design system #}
+{# Params: title, description, cta_text, cta_href #}
+
+<div class="rounded-xl border border-dashed border-white/[0.08] bg-slate-900/50 p-8 text-center">
+  <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-800">
+    <svg class="h-6 w-6 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+  </div>
+  <p class="text-sm font-semibold text-white">{{ title }}</p>
+  {% if description %}<p class="mt-1 text-sm text-slate-500">{{ description }}</p>{% endif %}
   {% if cta_text and cta_href %}
     <div class="mt-4">
-      <a href="{{ cta_href }}" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">{{ cta_text }}</a>
+      <a href="{{ cta_href }}" class="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-glow-emerald transition-all duration-150 hover:bg-emerald-400 hover:-translate-y-px no-underline">{{ cta_text }}</a>
     </div>
   {% endif %}
 </div>

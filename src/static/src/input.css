@@ -1,19 +1,33 @@
 @import "tailwindcss";
+@config "../../../tailwind.config.js";
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-slate-950 text-white antialiased;
   }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+");
+    background-repeat: repeat;
+  }
+
   a {
-    @apply text-slate-900 underline-offset-4 hover:underline;
+    @apply text-white underline-offset-4 hover:underline;
   }
   label {
-    @apply text-sm font-medium text-slate-700;
+    @apply text-sm font-medium text-slate-300;
   }
   input,
   select,
   textarea {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200;
+    @apply w-full rounded-lg border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white shadow-sm placeholder:text-slate-500 focus:border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20;
   }
   textarea {
     @apply min-h-[120px];
@@ -21,12 +35,35 @@
   .field-error input,
   .field-error select,
   .field-error textarea {
-    @apply border-rose-400 focus:border-rose-400 focus:ring-rose-200;
+    @apply border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20;
   }
   .help-text {
     @apply text-xs text-slate-500;
   }
   .error-text {
-    @apply text-xs text-rose-600;
+    @apply text-xs text-red-400;
+  }
+
+  /* Sidebar collapsed: hide text labels on desktop */
+  @media (min-width: 768px) {
+    #sidebar[data-collapsed] .sidebar-label {
+      display: none;
+    }
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 */
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #475569; /* slate-600 */
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b; /* slate-500 */
   }
 }

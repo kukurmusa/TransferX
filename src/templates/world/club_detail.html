@@ -2,43 +2,46 @@
 
 {% block title %}{{ club.name }} | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title=club.name subtitle="Club profile" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ club.name }}</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Club profile</p>{% endblock %}
 
+{% block content %}
   <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
     <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {# Club info #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <div class="flex flex-wrap items-center gap-4">
           {% if profile and profile.crest_url %}
-            <img src="{{ profile.crest_url }}" alt="{{ club.name }}" class="h-16 w-16 rounded-full border border-slate-200 bg-white" />
+            <img src="{{ profile.crest_url }}" alt="{{ club.name }}" class="h-16 w-16 rounded-full ring-2 ring-white/10" />
           {% endif %}
           <div>
-            <div class="text-xl font-semibold text-slate-900">{{ club.name }}</div>
-            <div class="text-sm text-slate-500">League {{ league_id }} | Season {{ season }}</div>
+            <div class="text-xl font-semibold text-white">{{ club.name }}</div>
+            <div class="text-sm text-slate-400">League {{ league_id }} | Season {{ season }}</div>
             {% if profile and profile.venue_name %}
               <div class="text-sm text-slate-500">{{ profile.venue_name }}{% if profile.venue_city %}, {{ profile.venue_city }}{% endif %}</div>
             {% endif %}
           </div>
         </div>
-        <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        <div class="mt-5 grid gap-4 border-t border-white/[0.05] pt-5 sm:grid-cols-3">
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Squad size</div>
-            <div class="text-sm font-semibold text-slate-900">{{ stats.squad_size|default:0 }}</div>
+            <div class="text-xs uppercase tracking-wide text-slate-500">Squad size</div>
+            <div class="text-sm font-semibold text-white">{{ stats.squad_size|default:0 }}</div>
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Average age</div>
-            <div class="text-sm font-semibold text-slate-900">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</div>
+            <div class="text-xs uppercase tracking-wide text-slate-500">Average age</div>
+            <div class="text-sm font-semibold text-white">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</div>
           </div>
           <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Venue capacity</div>
-            <div class="text-sm font-semibold text-slate-900">{% if profile and profile.venue_capacity %}{{ profile.venue_capacity }}{% else %}-{% endif %}</div>
+            <div class="text-xs uppercase tracking-wide text-slate-500">Venue capacity</div>
+            <div class="text-sm font-semibold text-white">{% if profile and profile.venue_capacity %}{{ profile.venue_capacity }}{% else %}-{% endif %}</div>
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {# Squad #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-slate-900">Squad</h2>
+          <h2 class="text-sm font-semibold text-white">Squad</h2>
           <form method="get" class="flex flex-wrap items-center gap-2">
             <input type="text" name="q" value="{{ q }}" placeholder="Search players" class="w-full max-w-xs" />
             <input type="text" name="position" value="{{ position }}" placeholder="Position" class="w-28" />
@@ -52,12 +55,12 @@
           </form>
         </div>
 
-        <div class="mt-4 space-y-2">
+        <div class="mt-4 space-y-1">
           {% for membership in page_obj.object_list %}
             {% url 'world:player_detail' membership.player.id as player_url %}
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
               <div>
-                <div class="font-semibold text-slate-900">{{ membership.player.name }}</div>
+                <div class="font-semibold text-white">{{ membership.player.name }}</div>
                 <div class="text-xs text-slate-500">{{ membership.position|default:"-" }}{% if membership.number %} | #{{ membership.number }}{% endif %}</div>
               </div>
               <div class="flex items-center gap-2">
@@ -68,19 +71,21 @@
               </div>
             </div>
           {% empty %}
-            <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500">No squad members found.</div>
+            <div class="rounded-lg bg-slate-800/40 px-4 py-3 text-sm text-slate-500">No squad members found.</div>
           {% endfor %}
         </div>
 
         {% if page_obj.paginator.num_pages > 1 %}
-          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+          <div class="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-4 text-sm text-slate-500">
             <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             <div class="flex items-center gap-2">
               {% if page_obj.has_previous %}
-                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
+                <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+                   href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
               {% endif %}
               {% if page_obj.has_next %}
-                <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
+                <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+                   href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
               {% endif %}
             </div>
           </div>
@@ -88,33 +93,34 @@
       </div>
     </div>
 
+    {# Sidebar #}
     <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 class="text-sm font-semibold text-slate-900">Club stats</h3>
-        <div class="mt-3 space-y-2 text-sm text-slate-600">
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <h3 class="text-sm font-semibold text-white">Club stats</h3>
+        <div class="mt-3 space-y-2 text-sm">
           <div class="flex items-center justify-between">
-            <span>Players</span>
-            <span class="font-semibold text-slate-900">{{ stats.squad_size|default:0 }}</span>
+            <span class="text-slate-400">Players</span>
+            <span class="font-semibold text-white">{{ stats.squad_size|default:0 }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span>Average age</span>
-            <span class="font-semibold text-slate-900">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</span>
+            <span class="text-slate-400">Average age</span>
+            <span class="font-semibold text-white">{% if stats.avg_age %}{{ stats.avg_age|floatformat:1 }}{% else %}-{% endif %}</span>
           </div>
         </div>
         {% if profile and profile.top_form_players %}
-          <div class="mt-4">
-            <div class="text-xs uppercase tracking-wide text-slate-400">Top form players</div>
+          <div class="mt-4 border-t border-white/[0.05] pt-4">
+            <div class="text-xs uppercase tracking-wide text-slate-500">Top form players</div>
             <div class="mt-2 space-y-2">
               {% for item in profile.top_form_players %}
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-slate-600">{{ item.name }}</span>
-                  <span class="font-semibold text-slate-900">{{ item.form_score|floatformat:1 }}</span>
+                  <span class="text-slate-400">{{ item.name }}</span>
+                  <span class="font-semibold text-white">{{ item.form_score|floatformat:1 }}</span>
                 </div>
               {% endfor %}
             </div>
           </div>
         {% endif %}
-        <div class="mt-4 text-xs text-slate-500">Updated: {% if profile %}{{ profile.updated_at|date:"M d, H:i" }}{% else %}-{% endif %}</div>
+        <div class="mt-4 text-xs text-slate-600">Updated: {% if profile %}{{ profile.updated_at|date:"M d, H:i" }}{% else %}-{% endif %}</div>
       </div>
     </div>
   </div>

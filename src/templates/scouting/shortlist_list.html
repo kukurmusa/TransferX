@@ -2,37 +2,41 @@
 
 {% block title %}Shortlists | TransferX{% endblock %}
 
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Shortlists</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Organise targets by role and season</p>{% endblock %}
+{% block page_actions %}
+  {% url 'scouting:shortlist_new' as new_url %}
+  {% include "components/button.html" with text="New shortlist" href=new_url variant="primary" size="sm" %}
+{% endblock %}
+
 {% block content %}
-  {% include "components/page_header.html" with title="Shortlists" subtitle="Organise targets by role and season" %}
-
-  <div class="mt-4 flex justify-end">
-    {% include "components/button.html" with text="New shortlist" href="/scouting/shortlists/new/" variant="primary" size="sm" %}
-  </div>
-
-  <div class="mt-6 grid gap-4 md:grid-cols-2">
-    {% if shortlists %}
+  {% if shortlists %}
+    <div class="grid gap-4 md:grid-cols-2">
       {% for shortlist in shortlists %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        {% url 'scouting:shortlist_detail' shortlist.id as sl_url %}
+        {% url 'scouting:shortlist_delete' shortlist.id as del_url %}
+        <div class="group rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15]">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <div class="text-lg font-semibold text-slate-900">{{ shortlist.name }}</div>
-              <div class="text-sm text-slate-500">{{ shortlist.description|default:"No description" }}</div>
+              <a class="text-lg font-semibold text-white no-underline hover:text-emerald-400" href="{{ sl_url }}">{{ shortlist.name }}</a>
+              <div class="mt-1 text-sm text-slate-500">{{ shortlist.description|default:"No description" }}</div>
             </div>
-            <div class="text-right text-sm text-slate-500">
+            <span class="shrink-0 rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-300 ring-1 ring-white/10">
               {{ shortlist.item_count }} players
-            </div>
+            </span>
           </div>
-          <div class="mt-4 flex items-center gap-2">
-            {% include "components/button.html" with text="View" href="/scouting/shortlists/{{ shortlist.id }}/" variant="secondary" size="sm" %}
-            <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/delete/">
+          <div class="mt-4 flex items-center gap-3 border-t border-white/[0.05] pt-4">
+            {% include "components/button.html" with text="Open" href=sl_url variant="secondary" size="sm" %}
+            <form method="post" action="{{ del_url }}">
               {% csrf_token %}
-              <button type="submit" class="text-xs font-medium text-rose-600">Delete</button>
+              {% include "components/button.html" with text="Delete" variant="danger" size="sm" %}
             </form>
           </div>
         </div>
       {% endfor %}
-    {% else %}
-      {% include "components/empty_state.html" with title="No shortlists yet" description="Create a shortlist to start tracking targets." %}
-    {% endif %}
-  </div>
+    </div>
+  {% else %}
+    {% url 'scouting:shortlist_new' as new_url %}
+    {% include "components/empty_state.html" with title="No shortlists yet" description="Create a shortlist to start tracking targets." cta_text="New shortlist" cta_href=new_url %}
+  {% endif %}
 {% endblock %}

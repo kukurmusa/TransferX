@@ -2,66 +2,79 @@
 
 {% block title %}My Targets | TransferX{% endblock %}
 
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">My targets</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Recruitment overview for your club</p>{% endblock %}
+
 {% block content %}
-  {% include "components/page_header.html" with title="My Targets" subtitle="Recruitment overview for your club" %}
-
-  <div class="mt-6 grid gap-6 lg:grid-cols-2">
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Shortlists</h2>
-      <div class="mt-4 space-y-3">
-        {% if shortlists %}
+  <div class="grid gap-4 lg:grid-cols-2">
+    {# Shortlists #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-white">Shortlists</h2>
+        {% include "components/button.html" with text="View all" href="/scouting/shortlists/" variant="ghost" size="sm" %}
+      </div>
+      {% if shortlists %}
+        <div class="mt-4 space-y-1">
           {% for shortlist in shortlists %}
-            <div class="flex items-center justify-between text-sm text-slate-600">
-              <a class="font-medium text-slate-900" href="/scouting/shortlists/{{ shortlist.id }}/">{{ shortlist.name }}</a>
-              <span>{{ shortlist.item_count }} players</span>
+            {% url 'scouting:shortlist_detail' shortlist.id as sl_url %}
+            <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
+              <a class="font-medium text-white no-underline hover:text-emerald-400" href="{{ sl_url }}">{{ shortlist.name }}</a>
+              <span class="text-xs text-slate-500">{{ shortlist.item_count }} players</span>
             </div>
           {% endfor %}
-        {% else %}
-          <div class="text-sm text-slate-500">No shortlists yet.</div>
-        {% endif %}
-      </div>
+        </div>
+      {% else %}
+        <div class="mt-4 text-sm text-slate-500">No shortlists yet.</div>
+      {% endif %}
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Recently updated</h2>
-      <div class="mt-4 space-y-3">
-        {% if recent_items %}
+    {# Recently updated #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <h2 class="text-sm font-semibold text-white">Recently updated</h2>
+      {% if recent_items %}
+        <div class="mt-4 space-y-1">
           {% for item in recent_items %}
-            <div class="flex items-center justify-between text-sm text-slate-600">
-              <span class="font-medium text-slate-900">{{ item.player.name }}</span>
-              <span>{{ item.shortlist.name }}</span>
+            <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
+              <span class="font-medium text-white">{{ item.player.name }}</span>
+              <span class="text-xs text-slate-500">{{ item.shortlist.name }}</span>
             </div>
           {% endfor %}
-        {% else %}
-          <div class="text-sm text-slate-500">No recent updates.</div>
-        {% endif %}
-      </div>
+        </div>
+      {% else %}
+        <div class="mt-4 text-sm text-slate-500">No recent updates.</div>
+      {% endif %}
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Offers expiring soon</h2>
-      <div class="mt-4 space-y-3">
-        {% if expiring_offers %}
+    {# Offers expiring soon #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <h2 class="text-sm font-semibold text-white">Offers expiring soon</h2>
+      {% if expiring_offers %}
+        <div class="mt-4 space-y-1">
           {% for offer in expiring_offers %}
-            <div class="flex items-center justify-between text-sm text-slate-600">
-              <a class="font-medium text-slate-900" href="/marketplace/offers/{{ offer.id }}/">{{ offer.player.name }}</a>
-              <span>{{ offer.expires_at|date:"M d, H:i" }}</span>
+            {% url 'marketplace:offer_detail' offer.id as offer_url %}
+            <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
+              <a class="font-medium text-white no-underline hover:text-emerald-400" href="{{ offer_url }}">{{ offer.player.name }}</a>
+              <div class="flex items-center gap-2">
+                {% include "components/badge.html" with text="Expiring" variant="warning" size="sm" %}
+                <span class="text-xs text-slate-500">{{ offer.expires_at|date:"M d, H:i" }}</span>
+              </div>
             </div>
           {% endfor %}
-        {% else %}
-          <div class="text-sm text-slate-500">No expiring offers.</div>
-        {% endif %}
-      </div>
+        </div>
+      {% else %}
+        <div class="mt-4 text-sm text-slate-500">No expiring offers.</div>
+      {% endif %}
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900">Watched now available</h2>
-      <div class="mt-4 space-y-3">
-        {% if watched_available %}
+    {# Watched now available #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <h2 class="text-sm font-semibold text-white">Watched now available</h2>
+      {% if watched_available %}
+        <div class="mt-4 space-y-1">
           {% for entry in watched_available %}
-            <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
-              <span class="font-medium text-slate-900">{{ entry.player.name }}</span>
-              <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
+              <span class="font-medium text-white">{{ entry.player.name }}</span>
+              <div class="flex flex-wrap items-center gap-1.5">
                 {% if entry.has_open_listing %}
                   {% include "components/badge.html" with text="Listed" variant="info" size="sm" %}
                 {% endif %}
@@ -74,10 +87,10 @@
               </div>
             </div>
           {% endfor %}
-        {% else %}
-          <div class="text-sm text-slate-500">No watched players available right now.</div>
-        {% endif %}
-      </div>
+        </div>
+      {% else %}
+        <div class="mt-4 text-sm text-slate-500">No watched players available right now.</div>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

@@ -1,0 +1,17 @@
+{# Internal: renders the actual <a> or <button> tag. Called by button.html #}
+{# Inherits: text, variant_classes, size, href, extra_classes, disabled, loading #}
+
+{% if size == "sm" %}
+  {% with size_classes="px-3 py-1.5 text-xs" %}
+    {% include "components/_button_tag.html" %}
+  {% endwith %}
+{% elif size == "lg" %}
+  {% with size_classes="px-5 py-2.5 text-base" %}
+    {% include "components/_button_tag.html" %}
+  {% endwith %}
+{% else %}
+  {# md (default) #}
+  {% with size_classes="px-4 py-2 text-sm" %}
+    {% include "components/_button_tag.html" %}
+  {% endwith %}
+{% endif %}

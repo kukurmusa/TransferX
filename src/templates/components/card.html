@@ -1,10 +1,17 @@
-<div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+{# Card component — dark design system #}
+{# Params: title, subtitle, body_template, body, padded (default true), hover #}
+
+<div class="bg-slate-900 rounded-xl ring-1 ring-white/[0.08]{% if hover %} hover:ring-white/[0.15] transition-all duration-200{% endif %}">
   {% if title %}
-    <div class="border-b border-slate-100 px-5 py-4">
-      <h3 class="text-sm font-semibold text-slate-900">{{ title }}</h3>
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
+      <div>
+        <h3 class="text-sm font-semibold text-white">{{ title }}</h3>
+        {% if subtitle %}<p class="mt-0.5 text-xs text-slate-400">{{ subtitle }}</p>{% endif %}
+      </div>
+      {% if actions %}<div class="flex items-center gap-2">{{ actions }}</div>{% endif %}
     </div>
   {% endif %}
-  <div class="px-5 py-4">
+  <div class="{% if padded != False %}px-5 py-4{% endif %}">
     {% if body_template %}
       {% include body_template %}
     {% else %}

@@ -1,0 +1,20 @@
+{# Sidebar navigation link with inline SVG icon #}
+{# Usage: {% include "components/sidebar_link.html" with href="/path/" label="Label" icon="icon-name" %} #}
+
+{% with current_path=request.path %}
+{% if current_path == href %}
+  {% with is_active=True %}
+    <a href="{{ href }}"
+       class="group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-emerald-400 bg-emerald-500/10 no-underline before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-0.5 before:rounded-full before:bg-emerald-500">
+      {% include "components/_sidebar_icon.html" with icon=icon %}
+      <span class="sidebar-label whitespace-nowrap">{{ label }}</span>
+    </a>
+  {% endwith %}
+{% else %}
+  <a href="{{ href }}"
+     class="group flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 no-underline">
+    {% include "components/_sidebar_icon.html" with icon=icon %}
+    <span class="sidebar-label whitespace-nowrap">{{ label }}</span>
+  </a>
+{% endif %}
+{% endwith %}

@@ -1,18 +1,16 @@
 {% if my_auctions %}
-  <ul class="divide-y divide-slate-100">
+  <div class="divide-y divide-white/[0.05]">
     {% for auction in my_auctions|slice:":6" %}
       {% url 'auctions:detail' auction.id as auction_url %}
-      <li class="py-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-sm font-semibold text-slate-900">{{ auction.player.name }}</div>
-            <div class="text-xs text-slate-500">Status: {{ auction.get_status_display }}</div>
-          </div>
-          <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="{{ auction_url }}">Manage</a>
+      <div class="flex items-center justify-between py-3">
+        <div>
+          <div class="text-sm font-semibold text-white">{{ auction.player.name }}</div>
+          <div class="text-xs text-slate-500">Status: {{ auction.get_status_display }}</div>
         </div>
-      </li>
+        <a class="text-xs font-medium text-slate-400 no-underline hover:text-emerald-400" href="{{ auction_url }}">Manage</a>
+      </div>
     {% endfor %}
-  </ul>
+  </div>
 {% else %}
   {% url 'auctions:create' as auctions_create_url %}
   {% include "components/empty_state.html" with title="No listings yet" description="Create your first listing to start receiving offers." cta_text="Create listing" cta_href=auctions_create_url %}

@@ -2,24 +2,34 @@
 
 {% block title %}Free Agents | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="Free agents" subtitle="Players available without a club" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Free agents</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Players available without a club</p>{% endblock %}
 
-  <div class="mt-6 space-y-4">
-    {% if players %}
+{% block content %}
+  {% if players %}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for player in players %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="text-lg font-semibold text-slate-900">{{ player.name }}</div>
-              <div class="text-sm text-slate-500">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
-            </div>
-            <div class="text-sm text-slate-500">Visibility: {{ player.get_visibility_display }}</div>
+        <div class="relative rounded-xl bg-slate-900 p-4 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15]">
+          {# Position badge #}
+          {% if player.position == "GK" %}
+            <span class="absolute top-3 left-3 rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400 ring-1 ring-amber-400/30">GK</span>
+          {% elif player.position == "DEF" %}
+            <span class="absolute top-3 left-3 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-400 ring-1 ring-sky-500/30">DEF</span>
+          {% elif player.position == "MID" %}
+            <span class="absolute top-3 left-3 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30">MID</span>
+          {% elif player.position == "FWD" %}
+            <span class="absolute top-3 left-3 rounded-full bg-red-500/15 px-2.5 py-0.5 text-xs font-semibold text-red-400 ring-1 ring-red-500/30">FWD</span>
+          {% endif %}
+
+          <div class="mt-7">
+            <div class="text-base font-semibold text-white">{{ player.name }}</div>
+            <div class="mt-0.5 text-sm text-slate-400">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
+            <div class="mt-1 text-xs text-slate-500">Visibility: {{ player.get_visibility_display }}</div>
           </div>
         </div>
       {% endfor %}
-    {% else %}
-      {% include "components/empty_state.html" with title="No free agents" description="No players are currently marked as free agents." %}
-    {% endif %}
-  </div>
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with title="No free agents" description="No players are currently marked as free agents." %}
+  {% endif %}
 {% endblock %}

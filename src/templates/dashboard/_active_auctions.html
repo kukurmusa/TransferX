@@ -1,21 +1,21 @@
 {% load humanize %}
-<div class="divide-y divide-slate-100">
+<div class="divide-y divide-white/[0.05]">
   {% for row in auction_rows %}
   <div class="px-5 py-4">
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-center gap-3">
         {% with pos=row.player.position %}
         <span class="inline-flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold
-          {% if pos == 'GK' %}bg-amber-100 text-amber-700
-          {% elif pos == 'DEF' %}bg-sky-100 text-sky-700
-          {% elif pos == 'MID' %}bg-emerald-100 text-emerald-700
-          {% elif pos == 'FWD' %}bg-rose-100 text-rose-700
-          {% else %}bg-slate-100 text-slate-700{% endif %}">
+          {% if pos == 'GK' %}bg-amber-500/15 text-amber-400
+          {% elif pos == 'DEF' %}bg-blue-500/15 text-blue-400
+          {% elif pos == 'MID' %}bg-emerald-500/15 text-emerald-400
+          {% elif pos == 'FWD' %}bg-red-500/15 text-red-400
+          {% else %}bg-slate-500/15 text-slate-400{% endif %}">
           {{ pos|default:"--" }}
         </span>
         {% endwith %}
         <div>
-          <div class="text-sm font-medium text-slate-900">{{ row.player.name }}</div>
+          <div class="text-sm font-medium text-white">{{ row.player.name }}</div>
           <div class="text-xs text-slate-500">
             {% if row.selling_club %}{{ row.selling_club.club_name }}{% else %}Free agent{% endif %}
           </div>
@@ -23,11 +23,11 @@
       </div>
       <div class="flex flex-shrink-0 items-center gap-2">
         {% if row.status == "leading" %}
-          <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Leading</span>
+          {% include "components/badge.html" with text="Leading" variant="success" size="sm" %}
         {% elif row.status == "outbid" %}
-          <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">Outbid</span>
+          {% include "components/badge.html" with text="Outbid" variant="danger" size="sm" %}
         {% else %}
-          <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Watching</span>
+          {% include "components/badge.html" with text="Watching" variant="neutral" size="sm" %}
         {% endif %}
         <span data-deadline="{{ row.deadline_iso }}"
               class="min-w-[5rem] text-right font-mono text-xs text-slate-500"></span>
@@ -41,10 +41,10 @@
         <span>Top bid: &pound;{{ row.top_bid|floatformat:0|intcomma }}</span>
       {% endif %}
       {% if row.my_bid %}
-        <span class="font-medium text-slate-700">My bid: &pound;{{ row.my_bid|floatformat:0|intcomma }}</span>
+        <span class="font-medium text-slate-300">My bid: &pound;{{ row.my_bid|floatformat:0|intcomma }}</span>
       {% endif %}
       <a href="{% url 'auctions:detail' row.auction.pk %}"
-         class="ml-auto inline-flex items-center rounded-lg bg-sky-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-sky-700">
+         class="ml-auto inline-flex items-center rounded-lg bg-emerald-500 px-3 py-1 text-xs font-medium text-white no-underline transition hover:bg-emerald-400">
         Bid Now &rarr;
       </a>
     </div>

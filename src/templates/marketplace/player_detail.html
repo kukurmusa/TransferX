@@ -2,67 +2,68 @@
 
 {% block title %}{{ player.name }} | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title=player.name subtitle="Player profile" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ player.name }}</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Player profile</p>{% endblock %}
+{% block page_actions %}
+  <div class="flex items-center gap-2">
+    {% if player.current_club %}
+      {% include "components/badge.html" with text="Contracted" variant="info" size="sm" %}
+    {% else %}
+      {% include "components/badge.html" with text="Free agent" variant="warning" size="sm" %}
+    {% endif %}
+    {% if player.open_to_offers and not player.current_club %}
+      {% include "components/badge.html" with text="Open to offers" variant="success" size="sm" %}
+    {% endif %}
+  </div>
+{% endblock %}
 
-  <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+{% block content %}
+  <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
     <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div class="text-lg font-semibold text-slate-900">{{ player.name }}</div>
-            <div class="text-sm text-slate-500">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
-            <div class="text-sm text-slate-500">Nationality: {{ player.nationality|default:"-" }}</div>
+      {# Player info #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <div class="text-lg font-semibold text-white">{{ player.name }}</div>
+        <div class="text-sm text-slate-400">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
+        <div class="text-sm text-slate-400">Nationality: {{ player.nationality|default:"-" }}</div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-lg bg-slate-800/60 p-3">
+            <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Club</div>
+            <div class="mt-1 text-sm font-semibold text-white">{% if player.current_club %}{{ player.current_club.club_name }}{% else %}-{% endif %}</div>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
-            {% if player.current_club %}
-              {% include "components/badge.html" with text="Contracted" variant="info" size="sm" %}
-            {% else %}
-              {% include "components/badge.html" with text="Free agent" variant="warning" size="sm" %}
-            {% endif %}
-            {% if player.open_to_offers and not player.current_club %}
-              {% include "components/badge.html" with text="Open to offers" variant="success" size="sm" %}
-            {% endif %}
+          <div class="rounded-lg bg-slate-800/60 p-3">
+            <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Status</div>
+            <div class="mt-1 text-sm font-semibold text-white">{{ player.get_status_display }}</div>
           </div>
-        </div>
-        <div class="mt-4 grid gap-4 sm:grid-cols-3">
-          <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Club</div>
-            <div class="text-sm font-semibold text-slate-900">{% if player.current_club %}{{ player.current_club.club_name }}{% else %}-{% endif %}</div>
-          </div>
-          <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Status</div>
-            <div class="text-sm font-semibold text-slate-900">{{ player.get_status_display }}</div>
-          </div>
-          <div>
-            <div class="text-xs uppercase tracking-wide text-slate-400">Visibility</div>
-            <div class="text-sm font-semibold text-slate-900">{{ player.get_visibility_display }}</div>
+          <div class="rounded-lg bg-slate-800/60 p-3">
+            <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Visibility</div>
+            <div class="mt-1 text-sm font-semibold text-white">{{ player.get_visibility_display }}</div>
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Performance snapshot</h2>
+      {# Performance snapshot #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <h2 class="text-lg font-semibold text-white">Performance snapshot</h2>
         {% if latest_snapshot or player_form %}
-          <div class="mt-4 grid gap-4 sm:grid-cols-4">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Minutes</div>
-              <div class="text-sm font-semibold text-slate-900">{% if latest_snapshot %}{{ latest_snapshot.minutes|default:"-" }}{% else %}-{% endif %}</div>
+          <div class="mt-4 grid gap-3 sm:grid-cols-4">
+            <div class="rounded-lg bg-slate-800/60 p-3">
+              <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Minutes</div>
+              <div class="mt-1 text-sm font-semibold text-white">{% if latest_snapshot %}{{ latest_snapshot.minutes|default:"-" }}{% else %}-{% endif %}</div>
             </div>
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Goals</div>
-              <div class="text-sm font-semibold text-slate-900">{% if latest_snapshot %}{{ latest_snapshot.goals|default:"-" }}{% else %}-{% endif %}</div>
+            <div class="rounded-lg bg-slate-800/60 p-3">
+              <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Goals</div>
+              <div class="mt-1 text-sm font-semibold text-white">{% if latest_snapshot %}{{ latest_snapshot.goals|default:"-" }}{% else %}-{% endif %}</div>
             </div>
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Assists</div>
-              <div class="text-sm font-semibold text-slate-900">{% if latest_snapshot %}{{ latest_snapshot.assists|default:"-" }}{% else %}-{% endif %}</div>
+            <div class="rounded-lg bg-slate-800/60 p-3">
+              <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Assists</div>
+              <div class="mt-1 text-sm font-semibold text-white">{% if latest_snapshot %}{{ latest_snapshot.assists|default:"-" }}{% else %}-{% endif %}</div>
             </div>
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Avg rating</div>
-              <div class="text-sm font-semibold text-slate-900">{% if latest_snapshot and latest_snapshot.rating %}{{ latest_snapshot.rating|floatformat:2 }}{% else %}-{% endif %}</div>
+            <div class="rounded-lg bg-slate-800/60 p-3">
+              <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Avg rating</div>
+              <div class="mt-1 text-sm font-semibold text-white">{% if latest_snapshot and latest_snapshot.rating %}{{ latest_snapshot.rating|floatformat:2 }}{% else %}-{% endif %}</div>
             </div>
           </div>
-          <div class="mt-4 text-sm text-slate-500">
+          <div class="mt-4 text-sm text-slate-400">
             Recent performance index: {% if player_form %}{{ player_form.form_score|floatformat:1 }}{% else %}-{% endif %}
           </div>
         {% else %}
@@ -71,21 +72,23 @@
       </div>
     </div>
 
-    <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Actions</h2>
+    <div class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+      {# Actions #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <h2 class="text-lg font-semibold text-white">Actions</h2>
         {% url 'marketplace:offer_new' as offer_new_url %}
         <div class="mt-4 flex flex-col gap-2">
-          <a class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700" href="{{ offer_new_url }}?player={{ player.id }}{% if listing %}&listing={{ listing.id }}{% endif %}">Make offer</a>
+          {% include "components/button.html" with text="Make offer" href=offer_new_url variant="primary" size="md" extra_classes="w-full" %}
           {% if listing %}
-            <a class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-300" href="/listings/{{ listing.id }}/">View listing</a>
+            {% include "components/button.html" with text="View listing" href="/listings/"|add:listing.id|add:"/" variant="secondary" size="md" extra_classes="w-full" %}
           {% endif %}
         </div>
       </div>
 
+      {# Scouting #}
       {% if can_scout %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 class="text-lg font-semibold text-slate-900">Scouting</h2>
+        <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+          <h2 class="text-lg font-semibold text-white">Scouting</h2>
           <div class="mt-3">
             {% include "scouting/_interest_badge.html" with interest=interest %}
           </div>
@@ -94,7 +97,7 @@
             <input type="hidden" name="player_id" value="{{ player.id }}" />
             <input type="hidden" name="next" value="{{ request.get_full_path }}" />
             <div>
-              <label class="text-xs font-medium text-slate-600">Interest level</label>
+              <label class="text-xs font-medium text-slate-400">Interest level</label>
               <select name="level" class="mt-1 w-full">
                 <option value="WATCHING" {% if interest and interest.level == "WATCHING" %}selected{% endif %}>Watching</option>
                 <option value="INTERESTED" {% if interest and interest.level == "INTERESTED" %}selected{% endif %}>Interested</option>
@@ -102,7 +105,7 @@
               </select>
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-600">Stage</label>
+              <label class="text-xs font-medium text-slate-400">Stage</label>
               <select name="stage" class="mt-1 w-full">
                 <option value="SCOUTED" {% if interest and interest.stage == "SCOUTED" %}selected{% endif %}>Scouted</option>
                 <option value="CONTACTED" {% if interest and interest.stage == "CONTACTED" %}selected{% endif %}>Contacted</option>
@@ -110,28 +113,32 @@
                 <option value="DROPPED" {% if interest and interest.stage == "DROPPED" %}selected{% endif %}>Dropped</option>
               </select>
             </div>
-            <div class="flex items-center gap-2">
-              {% include "components/button.html" with text="Save interest" variant="primary" size="sm" %}
-            </div>
+            {% include "components/button.html" with text="Save interest" variant="primary" size="sm" extra_classes="w-full" %}
           </form>
           <form method="post" action="{% url 'scouting:interest_clear' %}" class="mt-2">
             {% csrf_token %}
             <input type="hidden" name="player_id" value="{{ player.id }}" />
             <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-            <button type="submit" class="text-xs font-medium text-rose-600">Clear interest</button>
+            <button type="submit" class="text-xs font-medium text-red-400 hover:text-red-300">Clear interest</button>
           </form>
           <div class="mt-4 text-xs text-slate-500">Add to shortlist</div>
           {% include "scouting/_shortlist_dropdown.html" with player=player shortlists=shortlists next_url=request.get_full_path can_scout=can_scout %}
         </div>
       {% endif %}
 
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Listing</h2>
+      {# Listing info #}
+      <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+        <h2 class="text-lg font-semibold text-white">Listing</h2>
         {% if listing %}
-          <div class="text-sm text-slate-500">Asking price: {% if listing.asking_price %}GBP {{ listing.asking_price }}{% else %}-{% endif %}</div>
-          <div class="text-sm text-slate-500">Deadline: {% if listing.deadline %}{{ listing.deadline|date:"M d, H:i" }}{% else %}-{% endif %}</div>
+          <div class="mt-3 space-y-1">
+            {% include "components/metric.html" with label="Asking price" value=listing.asking_price|default:"-" %}
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-400">Deadline</span>
+              <span class="font-semibold text-white">{% if listing.deadline %}{{ listing.deadline|date:"M d, H:i" }}{% else %}-{% endif %}</span>
+            </div>
+          </div>
         {% else %}
-          <div class="text-sm text-slate-500">No open listing for this player.</div>
+          <div class="mt-3 text-sm text-slate-500">No open listing for this player.</div>
         {% endif %}
       </div>
     </div>

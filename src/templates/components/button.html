@@ -1,57 +1,22 @@
+{# Button component — dark design system #}
+{# Params: text, variant (primary|secondary|danger|ghost), size (sm|md|lg), href, extra_classes, disabled, loading #}
+
+{# ── Determine variant classes ── #}
 {% if variant == "secondary" %}
-  {% if size == "sm" %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% else %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% endif %}
+  {% with variant_classes="bg-slate-800 hover:bg-slate-700 text-white ring-1 ring-white/10 font-medium" %}
+    {% include "components/_button_inner.html" %}
+  {% endwith %}
 {% elif variant == "danger" %}
-  {% if size == "sm" %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-700 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-700 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% else %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% endif %}
+  {% with variant_classes="bg-red-500/10 hover:bg-red-500/20 text-red-400 ring-1 ring-red-500/30 font-medium" %}
+    {% include "components/_button_inner.html" %}
+  {% endwith %}
 {% elif variant == "ghost" %}
-  {% if size == "sm" %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-transparent px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-transparent px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% else %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% endif %}
+  {% with variant_classes="text-slate-400 hover:text-white hover:bg-white/5 font-medium" %}
+    {% include "components/_button_inner.html" %}
+  {% endwith %}
 {% else %}
-  {% if size == "sm" %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-sky-700 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-sky-700 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% else %}
-    {% if href %}
-      <a href="{{ href }}" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700 {{ extra_classes|default:'' }}">{{ text }}</a>
-    {% else %}
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700 {{ extra_classes|default:'' }}">{{ text }}</button>
-    {% endif %}
-  {% endif %}
+  {# primary (default) #}
+  {% with variant_classes="bg-emerald-500 hover:bg-emerald-400 text-white font-semibold shadow-glow-emerald hover:-translate-y-px" %}
+    {% include "components/_button_inner.html" %}
+  {% endwith %}
 {% endif %}

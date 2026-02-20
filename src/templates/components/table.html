@@ -1,20 +1,25 @@
-<div class="overflow-x-auto">
-  <table class="min-w-full divide-y divide-slate-200 text-sm">
-    <thead class="bg-slate-50">
-      <tr>
-        {% for header in headers %}
-          <th class="px-4 py-2 text-left font-semibold text-slate-700">{{ header }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-slate-100 bg-white">
-      {% for row in rows %}
+{# Table component — dark design system #}
+{# Params: headers (list), rows (list of lists) #}
+
+<div class="bg-slate-900 rounded-xl ring-1 ring-white/[0.08] overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-slate-800/60">
         <tr>
-          {% for cell in row %}
-            <td class="px-4 py-2 text-slate-600">{{ cell }}</td>
+          {% for header in headers %}
+            <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">{{ header }}</th>
           {% endfor %}
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr class="border-t border-white/5 transition-colors hover:bg-white/[0.03]">
+            {% for cell in row %}
+              <td class="px-5 py-3.5 text-slate-300">{{ cell }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>

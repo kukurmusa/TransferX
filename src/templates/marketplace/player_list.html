@@ -2,12 +2,13 @@
 
 {% block title %}Players | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="Player directory" subtitle="Search players and send offers" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Player directory</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Search players and send offers</p>{% endblock %}
 
+{% block content %}
   <form
     method="get"
-    class="mt-4 flex flex-wrap items-center gap-3"
+    class="mb-6 flex flex-wrap items-center gap-3"
     hx-get="."
     hx-target="#player-results"
     hx-trigger="keyup changed delay:300ms from:input, submit"
@@ -19,11 +20,11 @@
     <input type="text" name="nationality" value="{{ filters.nationality }}" placeholder="Nationality" class="w-32" />
     <input type="text" name="min_age" value="{{ filters.min_age }}" placeholder="Min age" class="w-20" />
     <input type="text" name="max_age" value="{{ filters.max_age }}" placeholder="Max age" class="w-20" />
-    <label class="flex items-center gap-2 text-sm text-slate-600">
-      <input type="checkbox" name="free_agent_only" value="1" {% if filters.free_agent_only %}checked{% endif %} /> Free agents only
+    <label class="flex items-center gap-2 text-sm text-slate-400">
+      <input type="checkbox" name="free_agent_only" value="1" {% if filters.free_agent_only %}checked{% endif %} class="w-auto rounded border-white/10 bg-slate-800" /> Free agents only
     </label>
-    <label class="flex items-center gap-2 text-sm text-slate-600">
-      <input type="checkbox" name="listed_only" value="1" {% if filters.listed_only %}checked{% endif %} /> Listed only
+    <label class="flex items-center gap-2 text-sm text-slate-400">
+      <input type="checkbox" name="listed_only" value="1" {% if filters.listed_only %}checked{% endif %} class="w-auto rounded border-white/10 bg-slate-800" /> Listed only
     </label>
     <select name="sort" class="w-44">
       <option value="performance" {% if filters.sort == "performance" %}selected{% endif %}>Performance</option>
@@ -35,7 +36,7 @@
     {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
   </form>
 
-  <div id="player-results" class="mt-6 space-y-4">
+  <div id="player-results" class="space-y-4">
     {% include "marketplace/_player_results.html" %}
   </div>
 {% endblock %}

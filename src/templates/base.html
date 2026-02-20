@@ -1,10 +1,13 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     {% load static %}
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}TransferX{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />
     <script
       src="{% static 'js/htmx.min.js' %}"
@@ -12,107 +15,225 @@
       defer
     ></script>
   </head>
-  <body>
-    <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-4">
-          <a href="/" class="text-lg font-semibold text-slate-900">TransferX</a>
-          <nav class="hidden items-center gap-2 md:flex">
-            {% include "components/nav_link.html" with href="/" label="Dashboard" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% include "components/nav_link.html" with href="/auctions/" label="Listings" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% include "components/nav_link.html" with href="/players/market/" label="Players" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% include "components/nav_link.html" with href="/clubs/" label="Clubs" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% include "components/nav_link.html" with href="/listings/" label="Listings" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% if user.is_authenticated %}
-              {% include "components/nav_link.html" with href="/marketplace/offers/received/" label="Inbox" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-              {% include "components/nav_link.html" with href="/marketplace/offers/sent/" label="Offers" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-              {% include "components/nav_link.html" with href="/scouting/targets/" label="Targets" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-              {% include "components/nav_link.html" with href="/scouting/shortlists/" label="Shortlists" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% endif %}
-            {% if user.is_staff %}
-              {% include "components/nav_link.html" with href="/auctions/" label="Auctions (Legacy)" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% endif %}
-            {% include "components/nav_link.html" with href="/world/players/" label="World Players" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% include "components/nav_link.html" with href="/world/clubs/" label="World Clubs" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% if user.is_authenticated %}
-              {% include "components/nav_link.html" with href="/accounts/finance/" label="Finance" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-              {% include "components/nav_link.html" with href="/accounts/me/" label="My Club" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% endif %}
-            {% if user.is_staff %}
-              {% include "components/nav_link.html" with href="/admin/" label="Admin" is_active=False active_classes="text-slate-900 bg-slate-100" %}
-            {% endif %}
-          </nav>
-        </div>
+  <body class="bg-slate-950 text-white font-sans antialiased">
 
-        <div class="flex items-center gap-3">
-          {% if user.is_authenticated %}
-            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-              {{ user.username }}
-            </span>
-            <form method="post" action="{% url 'logout' %}">
-              {% csrf_token %}
-              <button type="submit" class="text-sm font-medium text-slate-600 hover:text-slate-900">Logout</button>
-            </form>
-          {% else %}
-            <a href="{% url 'login' %}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Login</a>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="border-t border-slate-100 md:hidden">
-        <details class="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-          <summary class="cursor-pointer text-sm font-medium text-slate-600">Menu</summary>
-          <div class="mt-3 flex flex-col gap-2">
-            <a href="/" class="text-sm font-medium text-slate-700">Dashboard</a>
-            <a href="/auctions/" class="text-sm font-medium text-slate-700">Listings</a>
-            <a href="/players/market/" class="text-sm font-medium text-slate-700">Players</a>
-            <a href="/clubs/" class="text-sm font-medium text-slate-700">Clubs</a>
-            <a href="/listings/" class="text-sm font-medium text-slate-700">Listings</a>
-            {% if user.is_authenticated %}
-              <a href="/marketplace/offers/received/" class="text-sm font-medium text-slate-700">Inbox</a>
-              <a href="/marketplace/offers/sent/" class="text-sm font-medium text-slate-700">Offers</a>
-              <a href="/scouting/targets/" class="text-sm font-medium text-slate-700">Targets</a>
-              <a href="/scouting/shortlists/" class="text-sm font-medium text-slate-700">Shortlists</a>
-            {% endif %}
-            {% if user.is_staff %}
-              <a href="/auctions/" class="text-sm font-medium text-slate-700">Auctions (Legacy)</a>
-            {% endif %}
-            <a href="/world/players/" class="text-sm font-medium text-slate-700">World Players</a>
-            <a href="/world/clubs/" class="text-sm font-medium text-slate-700">World Clubs</a>
-            {% if user.is_authenticated %}
-              <a href="/accounts/finance/" class="text-sm font-medium text-slate-700">Finance</a>
-              <a href="/accounts/me/" class="text-sm font-medium text-slate-700">My Club</a>
-            {% endif %}
-            {% if user.is_staff %}
-              <a href="/admin/" class="text-sm font-medium text-slate-700">Admin</a>
-            {% endif %}
-            {% if user.is_authenticated %}
-              <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="text-left text-sm font-medium text-slate-700">
-                  Logout
-                </button>
-              </form>
-            {% else %}
-              <a href="{% url 'login' %}" class="text-sm font-medium text-slate-700">Login</a>
-            {% endif %}
-          </div>
-        </details>
-      </div>
+    {# ── Mobile top bar ── #}
+    <header class="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-white/[0.08] bg-slate-900/95 backdrop-blur px-4 py-3 md:hidden">
+      <a href="{% url 'dashboard' %}" class="text-lg font-semibold text-white no-underline">TransferX</a>
+      <button id="mobile-menu-btn" type="button" class="text-slate-400 hover:text-white" aria-label="Toggle menu">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      {% if messages %}
-        <div class="mb-4 space-y-2">
-          {% for message in messages %}
-            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-              {{ message }}
-            </div>
-          {% endfor %}
+    {# ── Sidebar ── #}
+    <aside id="sidebar"
+           class="fixed top-0 left-0 z-50 flex h-full flex-col border-r border-white/[0.08] bg-slate-900 transition-all duration-200
+                  max-md:-translate-x-full max-md:w-56 max-md:data-[open]:translate-x-0
+                  md:w-16 md:data-[expanded]:w-56"
+           data-collapsed>
+
+      {# Logo area #}
+      <div class="flex h-14 items-center gap-3 border-b border-white/[0.08] px-4">
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20">
+          <svg class="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
-      {% endif %}
-      {% block content %}{% endblock %}
+        <span class="sidebar-label text-lg font-semibold text-white whitespace-nowrap">TransferX</span>
+      </div>
+
+      {# Navigation #}
+      <nav class="flex-1 overflow-y-auto px-2 py-4 space-y-6">
+
+        {# ── MARKET ── #}
+        <div>
+          <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Market</p>
+          <div class="space-y-0.5">
+            {% include "components/sidebar_link.html" with href="/players/market/" label="Browse Players" icon="users" %}
+            {% include "components/sidebar_link.html" with href="/listings/" label="Listings" icon="tag" %}
+            {% include "components/sidebar_link.html" with href="/players/free-agents/" label="Free Agents" icon="user-plus" %}
+          </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        {# ── MY DEALS ── #}
+        <div>
+          <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Deals</p>
+          <div class="space-y-0.5">
+            {% include "components/sidebar_link.html" with href="/auctions/" label="Auctions" icon="gavel" %}
+            {% include "components/sidebar_link.html" with href="/marketplace/offers/received/" label="Inbox" icon="inbox" %}
+            {% include "components/sidebar_link.html" with href="/marketplace/offers/sent/" label="Sent Offers" icon="send" %}
+          </div>
+        </div>
+
+        {# ── CLUB ── #}
+        <div>
+          <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Club</p>
+          <div class="space-y-0.5">
+            {% include "components/sidebar_link.html" with href="/dashboard/" label="Dashboard" icon="layout-dashboard" %}
+            {% include "components/sidebar_link.html" with href="/accounts/me/" label="My Club" icon="shield" %}
+            {% include "components/sidebar_link.html" with href="/accounts/finance/" label="Finance" icon="wallet" %}
+          </div>
+        </div>
+
+        {# ── SCOUTING ── #}
+        <div>
+          <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Scouting</p>
+          <div class="space-y-0.5">
+            {% include "components/sidebar_link.html" with href="/scouting/targets/" label="Targets" icon="crosshair" %}
+            {% include "components/sidebar_link.html" with href="/scouting/shortlists/" label="Shortlists" icon="list" %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if user.is_staff %}
+        {# ── ADMIN ── #}
+        <div>
+          <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Admin</p>
+          <div class="space-y-0.5">
+            {% include "components/sidebar_link.html" with href="/admin/" label="Admin Panel" icon="settings" %}
+          </div>
+        </div>
+        {% endif %}
+      </nav>
+
+      {# Sidebar footer — user info + collapse toggle #}
+      <div class="border-t border-white/[0.08] px-2 py-3 space-y-2">
+        {% if user.is_authenticated %}
+          <div class="flex items-center gap-3 rounded-lg px-2 py-2">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-semibold text-emerald-400">
+              {{ user.username|make_list|first|upper }}
+            </div>
+            <div class="sidebar-label min-w-0">
+              <p class="truncate text-sm font-medium text-white">{{ user.username }}</p>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-slate-500 hover:text-slate-300">Logout</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 no-underline">
+            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+            <span class="sidebar-label">Login</span>
+          </a>
+        {% endif %}
+
+        {# Collapse/expand toggle (desktop only) #}
+        <button id="sidebar-toggle"
+                type="button"
+                class="hidden md:flex w-full items-center gap-3 rounded-lg px-2 py-2 text-slate-400 hover:text-white hover:bg-white/5">
+          <svg id="toggle-expand-icon" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+          <svg id="toggle-collapse-icon" class="h-5 w-5 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M19 19l-7-7 7-7"/></svg>
+          <span class="sidebar-label text-sm">Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    {# ── Mobile sidebar overlay ── #}
+    <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/60 hidden md:hidden"></div>
+
+    {# ── Main content ── #}
+    <main id="main-content" class="transition-all duration-200 pt-14 md:pt-0 md:ml-16">
+      <div class="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-8">
+
+        {# Page header — override page_title / page_subtitle / page_actions in child templates #}
+        {% block page_header %}
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            {% block page_title %}{% endblock %}
+            {% block page_subtitle %}{% endblock %}
+          </div>
+          <div class="flex items-center gap-2">
+            {% block page_actions %}{% endblock %}
+          </div>
+        </div>
+        {% endblock %}
+
+        {# Messages #}
+        {% if messages %}
+          <div class="mb-4 space-y-2">
+            {% for message in messages %}
+              <div class="rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 text-sm text-slate-300 shadow-sm">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </div>
     </main>
+
+    {# ── Sidebar JS ── #}
+    <script>
+    (function() {
+      const sidebar = document.getElementById('sidebar');
+      const main = document.getElementById('main-content');
+      const toggle = document.getElementById('sidebar-toggle');
+      const expandIcon = document.getElementById('toggle-expand-icon');
+      const collapseIcon = document.getElementById('toggle-collapse-icon');
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const overlay = document.getElementById('sidebar-overlay');
+      const STORAGE_KEY = 'transferx-sidebar-expanded';
+
+      // Desktop: restore state from localStorage
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'true') {
+        expand();
+      }
+
+      // Desktop toggle
+      toggle.addEventListener('click', function() {
+        if (sidebar.hasAttribute('data-expanded')) {
+          collapse();
+        } else {
+          expand();
+        }
+      });
+
+      // Mobile toggle
+      mobileBtn.addEventListener('click', function() {
+        if (sidebar.hasAttribute('data-open')) {
+          closeMobile();
+        } else {
+          openMobile();
+        }
+      });
+
+      overlay.addEventListener('click', closeMobile);
+
+      function expand() {
+        sidebar.setAttribute('data-expanded', '');
+        sidebar.removeAttribute('data-collapsed');
+        main.classList.remove('md:ml-16');
+        main.classList.add('md:ml-56');
+        expandIcon.classList.add('hidden');
+        collapseIcon.classList.remove('hidden');
+        localStorage.setItem(STORAGE_KEY, 'true');
+      }
+
+      function collapse() {
+        sidebar.removeAttribute('data-expanded');
+        sidebar.setAttribute('data-collapsed', '');
+        main.classList.remove('md:ml-56');
+        main.classList.add('md:ml-16');
+        expandIcon.classList.remove('hidden');
+        collapseIcon.classList.add('hidden');
+        localStorage.setItem(STORAGE_KEY, 'false');
+      }
+
+      function openMobile() {
+        sidebar.setAttribute('data-open', '');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMobile() {
+        sidebar.removeAttribute('data-open');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    })();
+    </script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

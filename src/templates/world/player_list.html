@@ -2,10 +2,11 @@
 
 {% block title %}World Players | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="World players" subtitle="Profiles built from league data" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">World players</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Profiles built from league data</p>{% endblock %}
 
-  <form method="get" class="mt-4 flex flex-wrap items-center gap-3">
+{% block content %}
+  <form method="get" class="mb-6 flex flex-wrap items-center gap-3">
     <input type="text" name="q" value="{{ q }}" placeholder="Search players" class="w-full max-w-xs" />
     <input type="text" name="position" value="{{ position }}" placeholder="Position" class="w-28" />
     <input type="text" name="min_form" value="{{ min_form }}" placeholder="Min form" class="w-24" />
@@ -24,31 +25,31 @@
     {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
   </form>
 
-  <div class="mt-6 space-y-4">
+  <div class="space-y-4">
     {% if page_obj.object_list %}
       {% for profile in page_obj.object_list %}
         {% url 'world:player_detail' profile.player.id as player_url %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15]">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               {% if profile.photo_url %}
-                <img src="{{ profile.photo_url }}" alt="{{ profile.player.name }}" class="h-12 w-12 rounded-full border border-slate-200 bg-white" />
+                <img src="{{ profile.photo_url }}" alt="{{ profile.player.name }}" class="h-12 w-12 rounded-full ring-1 ring-white/10" />
               {% endif %}
               <div>
-                <div class="text-lg font-semibold text-slate-900">{{ profile.player.name }}</div>
-                <div class="text-sm text-slate-500">{{ profile.position|default:"-" }} | Age {{ profile.age|default:"-" }}</div>
-                <div class="text-xs text-slate-400">Club: {{ profile.current_club.name|default:"-" }}</div>
+                <div class="text-lg font-semibold text-white">{{ profile.player.name }}</div>
+                <div class="text-sm text-slate-400">{{ profile.position|default:"-" }} | Age {{ profile.age|default:"-" }}</div>
+                <div class="text-xs text-slate-500">Club: {{ profile.current_club.name|default:"-" }}</div>
               </div>
             </div>
             <div class="text-right">
-              <div class="text-xs uppercase tracking-wide text-slate-400">Form score</div>
-              <div class="text-sm font-semibold text-slate-900">{% if profile.form_score %}{{ profile.form_score|floatformat:1 }}{% else %}-{% endif %}</div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Form score</div>
+              <div class="text-sm font-semibold text-white">{% if profile.form_score %}{{ profile.form_score|floatformat:1 }}{% else %}-{% endif %}</div>
               {% if profile.form_score and profile.form_score >= 75 %}
                 {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
               {% endif %}
             </div>
           </div>
-          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+          <div class="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-4 text-sm text-slate-500">
             <span>Minutes: {{ profile.minutes|default:"-" }} | Goals: {{ profile.goals|default:"-" }} | Assists: {{ profile.assists|default:"-" }}</span>
             {% include "components/button.html" with text="View" href=player_url variant="secondary" size="sm" %}
           </div>
@@ -64,10 +65,12 @@
       <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       <div class="flex items-center gap-2">
         {% if page_obj.has_previous %}
-          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
+          <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+             href="?page={{ page_obj.previous_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
         {% endif %}
         {% if page_obj.has_next %}
-          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
+          <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+             href="?page={{ page_obj.next_page_number }}&q={{ q }}&position={{ position }}&min_form={{ min_form }}&club={{ club_id }}&sort={{ sort }}&league_id={{ league_id }}&season={{ season }}">Next</a>
         {% endif %}
       </div>
     </div>

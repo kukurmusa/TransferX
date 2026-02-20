@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.paginator import Paginator
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -70,29 +69,16 @@ def shortlist_detail(request, pk: int):
     club = _require_club(request.user)
     shortlist = get_object_or_404(Shortlist, pk=pk, club=club)
     q = request.GET.get("q", "").strip()
-    priority = request.GET.get("priority", "").strip()
-    sort = request.GET.get("sort", "priority")
 
-    items = ShortlistItem.objects.select_related("player", "player__current_club").filter(
-        shortlist=shortlist
-    )
+    items_qs = ShortlistItem.objects.select_related(
+        "player", "player__current_club"
+    ).filter(shortlist=shortlist)
     if q:
-        items = items.filter(player__name__icontains=q)
-    if priority:
-        try:
-            items = items.filter(priority=int(priority))
-        except ValueError:
-            pass
+        items_qs = items_qs.filter(player__name__icontains=q)
 
-    if sort == "updated":
-        items = items.order_by("-updated_at")
-    else:
-        items = items.order_by("priority", "-updated_at")
+    items = list(items_qs.order_by("priority", "-updated_at"))
 
-    paginator = Paginator(items, 50)
-    page = paginator.get_page(request.GET.get("page"))
-
-    player_ids = [item.player_id for item in page.object_list]
+    player_ids = [item.player_id for item in items]
     interest_map = {
         interest.player_id: interest
         for interest in PlayerInterest.objects.filter(club=club, player_id__in=player_ids)
@@ -102,8 +88,20 @@ def shortlist_detail(request, pk: int):
             player_id__in=player_ids, status=Listing.Status.OPEN
         ).values_list("player_id", flat=True)
     )
-    for item in page.object_list:
+    for item in items:
         item.interest = interest_map.get(item.player_id)
+
+    # Build kanban columns (P1=High, P2=Medium, P3=Low, P4/P5=Monitor)
+    columns = [
+        {"label": "High", "priority": 1, "color": "#f87171", "items": []},
+        {"label": "Medium", "priority": 2, "color": "#fbbf24", "items": []},
+        {"label": "Low", "priority": 3, "color": "#60a5fa", "items": []},
+        {"label": "Monitor", "priority": 4, "color": "#94a3b8", "items": []},
+    ]
+    col_map = {1: 0, 2: 1, 3: 2, 4: 3, 5: 3}
+    for item in items:
+        idx = col_map.get(item.priority, 3)
+        columns[idx]["items"].append(item)
 
     form = ShortlistForm(instance=shortlist)
     return render(
@@ -111,10 +109,9 @@ def shortlist_detail(request, pk: int):
         "scouting/shortlist_detail.html",
         {
             "shortlist": shortlist,
-            "page_obj": page,
-            "interest_map": interest_map,
+            "columns": columns,
             "open_listing_ids": open_listing_ids,
-            "filters": {"q": q, "priority": priority, "sort": sort},
+            "filters": {"q": q},
             "form": form,
         },
     )

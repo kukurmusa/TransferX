@@ -2,126 +2,178 @@
 
 {% block title %}{{ shortlist.name }} | TransferX{% endblock %}
 
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ shortlist.name }}</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Shortlist &mdash; kanban board</p>{% endblock %}
+{% block page_actions %}
+  {% url 'scouting:shortlist_list' as list_url %}
+  {% include "components/button.html" with text="All shortlists" href=list_url variant="secondary" size="sm" %}
+{% endblock %}
+
 {% block content %}
-  {% include "components/page_header.html" with title=shortlist.name subtitle="Shortlist detail" %}
+  {# Search + settings toggle #}
+  <div class="mb-6 flex flex-wrap items-center gap-3">
+    <form method="get" class="flex items-center gap-3">
+      <input type="text" name="q" value="{{ filters.q }}" placeholder="Search player"
+             class="w-full max-w-xs rounded-lg border-0 bg-slate-800 px-3 py-2 text-sm text-white ring-1 ring-white/10 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500" />
+      {% include "components/button.html" with text="Search" variant="secondary" size="sm" %}
+    </form>
+    <button type="button" onclick="document.getElementById('settings-panel').classList.toggle('hidden')"
+            class="ml-auto rounded-lg bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 ring-1 ring-white/10 transition-colors hover:bg-slate-700">
+      Settings
+    </button>
+  </div>
 
-  <div class="mt-4 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-    <div class="space-y-6">
-      <form method="get" class="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <input type="text" name="q" value="{{ filters.q }}" placeholder="Search player" class="w-full max-w-xs" />
-        <select name="priority" class="w-28">
-          <option value="">Priority</option>
-          <option value="1" {% if filters.priority == "1" %}selected{% endif %}>P1</option>
-          <option value="2" {% if filters.priority == "2" %}selected{% endif %}>P2</option>
-          <option value="3" {% if filters.priority == "3" %}selected{% endif %}>P3</option>
-          <option value="4" {% if filters.priority == "4" %}selected{% endif %}>P4</option>
-          <option value="5" {% if filters.priority == "5" %}selected{% endif %}>P5</option>
-        </select>
-        <select name="sort" class="w-32">
-          <option value="priority" {% if filters.sort == "priority" %}selected{% endif %}>Priority</option>
-          <option value="updated" {% if filters.sort == "updated" %}selected{% endif %}>Last updated</option>
-        </select>
-        {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
-      </form>
-
-      <div class="space-y-4">
-        {% if page_obj.object_list %}
-          {% for item in page_obj.object_list %}
-              <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div class="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div class="text-lg font-semibold text-slate-900">{{ item.player.name }}</div>
-                    <div class="text-sm text-slate-500">
-                      {% if item.player.current_club %}{{ item.player.current_club.club_name }}{% else %}Free agent{% endif %}
-                    </div>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                      {% include "scouting/_interest_badge.html" with interest=item.interest %}
-                      {% if item.player_id in open_listing_ids %}
-                        {% include "components/badge.html" with text="Listed" variant="info" size="sm" %}
-                      {% endif %}
-                      {% if item.player.current_club_id is None %}
-                        {% include "components/badge.html" with text="Free agent" variant="warning" size="sm" %}
-                      {% endif %}
-                      {% if item.player.open_to_offers and item.player.current_club_id is None %}
-                        {% include "components/badge.html" with text="Open to offers" variant="success" size="sm" %}
-                      {% endif %}
-                    </div>
-                  </div>
-                  <div class="text-right text-sm text-slate-500">
-                    Priority P{{ item.priority }}
-                    <div class="text-xs">Updated {{ item.updated_at|date:"M d, H:i" }}</div>
-                  </div>
-                </div>
-
-                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                  <form method="post" action="/scouting/shortlist-items/{{ item.id }}/update/" class="flex items-center gap-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="/scouting/shortlists/{{ shortlist.id }}/" />
-                    <select name="priority" class="text-xs">
-                      <option value="1" {% if item.priority == 1 %}selected{% endif %}>P1</option>
-                      <option value="2" {% if item.priority == 2 %}selected{% endif %}>P2</option>
-                      <option value="3" {% if item.priority == 3 %}selected{% endif %}>P3</option>
-                      <option value="4" {% if item.priority == 4 %}selected{% endif %}>P4</option>
-                      <option value="5" {% if item.priority == 5 %}selected{% endif %}>P5</option>
-                    </select>
-                    <button type="submit" class="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">
-                      Update
-                    </button>
-                  </form>
-                  <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="/players/market/{{ item.player.id }}/">
-                    View player
-                  </a>
-                  <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/remove/">
-                    {% csrf_token %}
-                    <input type="hidden" name="player_id" value="{{ item.player.id }}" />
-                    <input type="hidden" name="next" value="/scouting/shortlists/{{ shortlist.id }}/" />
-                    <button type="submit" class="text-xs font-medium text-rose-600">Remove</button>
-                  </form>
-                </div>
-                </div>
-          {% endfor %}
-        {% else %}
-          {% include "components/empty_state.html" with title="No players yet" description="Add players to this shortlist from the player directory." %}
-        {% endif %}
-      </div>
-
-      {% if page_obj.paginator.num_pages > 1 %}
-        <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
-          <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-          <div class="flex items-center gap-2">
-            {% if page_obj.has_previous %}
-              <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}">Prev</a>
-            {% endif %}
-            {% if page_obj.has_next %}
-              <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}">Next</a>
-            {% endif %}
-          </div>
-        </div>
-      {% endif %}
-    </div>
-
-    <div class="space-y-6">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold text-slate-900">Shortlist settings</h2>
-        <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/edit/" class="mt-4 space-y-3">
+  {# Collapsible settings panel #}
+  <div id="settings-panel" class="mb-6 hidden rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div>
+        <h2 class="text-sm font-semibold text-white">Shortlist settings</h2>
+        {% url 'scouting:shortlist_edit' shortlist.id as edit_url %}
+        <form method="post" action="{{ edit_url }}" class="mt-4 space-y-4">
           {% csrf_token %}
           <div>
-            <label class="text-sm font-medium text-slate-700">Name</label>
-            <input type="text" name="name" value="{{ form.name.value|default:shortlist.name }}" class="mt-1 w-full" />
+            <label class="mb-1.5 block text-sm font-medium text-slate-300">Name</label>
+            <input type="text" name="name" value="{{ form.name.value|default:shortlist.name }}"
+                   class="w-full rounded-lg border-0 bg-slate-800 px-3 py-2 text-sm text-white ring-1 ring-white/10 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500" />
           </div>
           <div>
-            <label class="text-sm font-medium text-slate-700">Description</label>
-            <textarea name="description" rows="3" class="mt-1 w-full">{{ form.description.value|default:shortlist.description }}</textarea>
+            <label class="mb-1.5 block text-sm font-medium text-slate-300">Description</label>
+            <textarea name="description" rows="2"
+                      class="w-full rounded-lg border-0 bg-slate-800 px-3 py-2 text-sm text-white ring-1 ring-white/10 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500">{{ form.description.value|default:shortlist.description }}</textarea>
           </div>
-          <div class="flex items-center gap-2">
-            {% include "components/button.html" with text="Save" variant="primary" size="sm" %}
-          </div>
+          {% include "components/button.html" with text="Save" variant="primary" size="sm" %}
         </form>
-        <form method="post" action="/scouting/shortlists/{{ shortlist.id }}/delete/" class="mt-4">
+      </div>
+      <div>
+        <h2 class="text-sm font-semibold text-white">Danger zone</h2>
+        {% url 'scouting:shortlist_delete' shortlist.id as del_url %}
+        <form method="post" action="{{ del_url }}" class="mt-4">
           {% csrf_token %}
-          <button type="submit" class="text-xs font-medium text-rose-600">Delete shortlist</button>
+          <p class="text-sm text-slate-500">Permanently delete this shortlist and all its items.</p>
+          {% include "components/button.html" with text="Delete shortlist" variant="danger" size="sm" %}
         </form>
       </div>
     </div>
   </div>
+
+  {# Hidden form for drag-and-drop priority updates #}
+  <form id="kanban-move-form" method="post" class="hidden">
+    {% csrf_token %}
+    <input type="hidden" name="priority" value="" />
+    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+  </form>
+
+  {# Kanban board #}
+  <div id="kanban-board" class="grid gap-4 lg:grid-cols-4">
+    {% for col in columns %}
+      <div class="flex flex-col rounded-xl bg-slate-900/60 ring-1 ring-white/[0.08] transition-all"
+           data-column-priority="{{ col.priority }}">
+        {# Column header #}
+        <div class="flex items-center gap-2 border-b border-white/[0.05] px-4 py-3">
+          <span class="inline-block h-2.5 w-2.5 rounded-full" style="background: {{ col.color }}"></span>
+          <span class="text-sm font-semibold" style="color: {{ col.color }}">{{ col.label }}</span>
+          <span class="ml-auto rounded-md bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-400">{{ col.items|length }}</span>
+        </div>
+
+        {# Droppable area #}
+        <div class="kanban-dropzone flex-1 space-y-2 p-3" style="min-height: 120px">
+          {% for item in col.items %}
+            {# Draggable player card #}
+            <div class="group cursor-grab rounded-lg bg-slate-800 p-3 ring-1 ring-white/[0.06] transition-all hover:ring-white/[0.12] active:cursor-grabbing"
+                 draggable="true" data-item-id="{{ item.id }}">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="truncate text-sm font-semibold text-white">{{ item.player.name }}</div>
+                  <div class="truncate text-xs text-slate-500">
+                    {% if item.player.current_club %}{{ item.player.current_club.club_name }}{% else %}Free agent{% endif %}
+                  </div>
+                </div>
+                <span class="shrink-0 text-xs text-slate-600">P{{ item.priority }}</span>
+              </div>
+
+              {# Badges #}
+              <div class="mt-2 flex flex-wrap gap-1">
+                {% include "scouting/_interest_badge.html" with interest=item.interest %}
+                {% if item.player_id in open_listing_ids %}
+                  {% include "components/badge.html" with text="Listed" variant="info" size="sm" %}
+                {% endif %}
+                {% if item.player.current_club_id is None %}
+                  {% include "components/badge.html" with text="Free" variant="warning" size="sm" %}
+                {% endif %}
+              </div>
+
+              {# Actions (visible on hover) #}
+              <div class="mt-2 flex items-center gap-2 border-t border-white/[0.05] pt-2 opacity-0 transition-opacity group-hover:opacity-100">
+                {% url 'player_market_detail' item.player.id as player_url %}
+                <a class="text-xs font-medium text-slate-400 no-underline hover:text-emerald-400" href="{{ player_url }}">View</a>
+                {% url 'scouting:shortlist_remove' shortlist.id as remove_url %}
+                <form method="post" action="{{ remove_url }}" class="ml-auto">
+                  {% csrf_token %}
+                  <input type="hidden" name="player_id" value="{{ item.player.id }}" />
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                  <button type="submit" class="text-xs font-medium text-red-400 hover:text-red-300">Remove</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Drag-and-drop JavaScript #}
+  <script>
+  (function() {
+    var board = document.getElementById('kanban-board');
+    if (!board) return;
+
+    var draggedId = null;
+    var draggedEl = null;
+
+    board.addEventListener('dragstart', function(e) {
+      var card = e.target.closest('[data-item-id]');
+      if (!card) return;
+      draggedId = card.dataset.itemId;
+      draggedEl = card;
+      card.style.opacity = '0.4';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedId);
+    });
+
+    board.addEventListener('dragend', function(e) {
+      if (draggedEl) draggedEl.style.opacity = '1';
+      board.querySelectorAll('[data-column-priority]').forEach(function(c) {
+        c.classList.remove('ring-emerald-500/40');
+      });
+      draggedEl = null;
+      draggedId = null;
+    });
+
+    board.querySelectorAll('[data-column-priority]').forEach(function(col) {
+      col.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.classList.add('ring-emerald-500/40');
+      });
+
+      col.addEventListener('dragleave', function(e) {
+        if (!col.contains(e.relatedTarget)) {
+          col.classList.remove('ring-emerald-500/40');
+        }
+      });
+
+      col.addEventListener('drop', function(e) {
+        e.preventDefault();
+        col.classList.remove('ring-emerald-500/40');
+        if (!draggedId) return;
+
+        var newPriority = col.dataset.columnPriority;
+        var form = document.getElementById('kanban-move-form');
+        form.querySelector('[name="priority"]').value = newPriority;
+        form.action = '/scouting/shortlist-items/' + draggedId + '/update/';
+        form.submit();
+      });
+    });
+  })();
+  </script>
 {% endblock %}

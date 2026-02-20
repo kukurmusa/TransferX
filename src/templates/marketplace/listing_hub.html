@@ -2,12 +2,13 @@
 
 {% block title %}Listings | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="Listings" subtitle="Market listings available now" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Listings</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Market listings available now</p>{% endblock %}
 
+{% block content %}
   <form
     method="get"
-    class="mt-4 flex flex-wrap items-center gap-3"
+    class="mb-6 flex flex-wrap items-center gap-3"
     hx-get="."
     hx-target="#listing-results"
     hx-trigger="keyup changed delay:300ms from:input, submit"
@@ -23,7 +24,7 @@
     {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
   </form>
 
-  <div id="listing-results" class="mt-6 space-y-4">
+  <div id="listing-results" class="space-y-4">
     {% include "marketplace/_listing_results.html" %}
   </div>
 {% endblock %}

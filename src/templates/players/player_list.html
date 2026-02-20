@@ -3,56 +3,80 @@
 
 {% block title %}Players | TransferX{% endblock %}
 
-{% block content %}
-  <div class="flex flex-wrap items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-900">Players</h1>
-      <p class="text-sm text-slate-500">Manage your player roster and form insights.</p>
-    </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <form method="get">
-        <select class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" name="sort" onchange="this.form.submit()">
-          <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
-          <option value="form_desc" {% if sort == "form_desc" %}selected{% endif %}>Form (High-Low)</option>
-        </select>
-      </form>
-      {% if user|user_is_seller %}
-        {% url 'players:create' as create_player_url %}
-        {% include "components/button.html" with text="Add Player" href=create_player_url variant="primary" size="md" %}
-      {% endif %}
-    </div>
-  </div>
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Players</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Manage your player roster and form insights.</p>{% endblock %}
+{% block page_actions %}
+  <form method="get" class="flex items-center gap-2">
+    <select class="w-auto rounded-lg border-0 bg-slate-800 px-3 py-2 text-sm text-white ring-1 ring-white/10 focus:ring-emerald-500" name="sort" onchange="this.form.submit()">
+      <option value="name" {% if sort == "name" %}selected{% endif %}>Name (A-Z)</option>
+      <option value="form_desc" {% if sort == "form_desc" %}selected{% endif %}>Form (High-Low)</option>
+    </select>
+  </form>
+  {% if user|user_is_seller %}
+    {% url 'players:create' as create_player_url %}
+    {% include "components/button.html" with text="Add Player" href=create_player_url variant="primary" size="md" %}
+  {% endif %}
+{% endblock %}
 
-  <div class="mt-6 space-y-4">
-    {% if players %}
+{% block content %}
+  {% if players %}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for player in players %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="text-lg font-semibold text-slate-900">{{ player.name }}</div>
-              <div class="text-sm text-slate-500">
-                {{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}
-              </div>
-              <div class="text-xs text-slate-400">Club: {{ player.current_club.club_name|default:"-" }}</div>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="text-right">
-                <div class="text-xs uppercase tracking-wide text-slate-400">Form score</div>
-                <div class="text-sm font-semibold text-slate-900">
-                  {% if player.form %}{{ player.form.form_score|floatformat:1 }}{% else %}-{% endif %}
-                </div>
-              </div>
-              {% if player.form and player.form.form_score >= 75 %}
-                {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
-              {% endif %}
-              <a href="{% url 'players:edit' player.id %}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">Edit</a>
-            </div>
+        <a href="{% url 'players:edit' player.id %}" class="group relative block rounded-xl bg-slate-900 p-4 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15] hover:shadow-glow-emerald no-underline">
+          {# Position badge — top-left #}
+          {% if player.position == "GK" %}
+            <span class="absolute top-3 left-3 rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-semibold text-amber-400 ring-1 ring-amber-400/30">GK</span>
+          {% elif player.position == "DEF" %}
+            <span class="absolute top-3 left-3 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-xs font-semibold text-sky-400 ring-1 ring-sky-500/30">DEF</span>
+          {% elif player.position == "MID" %}
+            <span class="absolute top-3 left-3 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30">MID</span>
+          {% elif player.position == "FWD" %}
+            <span class="absolute top-3 left-3 rounded-full bg-red-500/15 px-2.5 py-0.5 text-xs font-semibold text-red-400 ring-1 ring-red-500/30">FWD</span>
+          {% endif %}
+
+          {# Hot badge — top-right #}
+          {% if player.form and player.form.form_score >= 75 %}
+            <span class="absolute top-3 right-3">
+              {% include "components/badge.html" with text="Hot" variant="danger" size="sm" %}
+            </span>
+          {% endif %}
+
+          {# Player info #}
+          <div class="mt-7">
+            <div class="text-base font-semibold text-white group-hover:text-emerald-400 transition-colors">{{ player.name }}</div>
+            <div class="mt-0.5 text-sm text-slate-400">Age {{ player.age|default:"-" }}</div>
+            <div class="mt-0.5 text-xs text-slate-500">{{ player.current_club.club_name|default:"No club" }}</div>
           </div>
-        </div>
+
+          {# Form score + bar #}
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-500">Form</span>
+              <span class="font-semibold text-white">
+                {% if player.form %}{{ player.form.form_score|floatformat:1 }}{% else %}-{% endif %}
+              </span>
+            </div>
+            {% if player.form %}
+              <div class="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-slate-800">
+                {% with score=player.form.form_score %}
+                  {% if score >= 65 %}
+                    <div class="h-full rounded-full bg-emerald-500" style="width: {{ score }}%"></div>
+                  {% elif score >= 40 %}
+                    <div class="h-full rounded-full bg-amber-400" style="width: {{ score }}%"></div>
+                  {% else %}
+                    <div class="h-full rounded-full bg-red-500" style="width: {{ score }}%"></div>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            {% else %}
+              <div class="mt-1.5 h-1 w-full rounded-full bg-slate-800"></div>
+            {% endif %}
+          </div>
+        </a>
       {% endfor %}
-    {% else %}
-      {% url 'players:create' as create_player_url %}
-      {% include "components/empty_state.html" with title="No players yet" description="Add your first player to get started." cta_text="Add Player" cta_href=create_player_url %}
-    {% endif %}
-  </div>
+    </div>
+  {% else %}
+    {% url 'players:create' as create_player_url %}
+    {% include "components/empty_state.html" with title="No players yet" description="Add your first player to get started." cta_text="Add Player" cta_href=create_player_url %}
+  {% endif %}
 {% endblock %}

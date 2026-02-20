@@ -2,45 +2,46 @@
 
 {% block title %}World Clubs | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="World clubs" subtitle="League clubs and squad profiles" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">World clubs</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">League clubs and squad profiles</p>{% endblock %}
 
-  <form method="get" class="mt-4 flex flex-wrap items-center gap-3">
+{% block content %}
+  <form method="get" class="mb-6 flex flex-wrap items-center gap-3">
     <input type="text" name="q" value="{{ q }}" placeholder="Search clubs" class="w-full max-w-xs" />
     <input type="text" name="league_id" value="{{ league_id }}" placeholder="League ID" class="w-32" />
     <input type="text" name="season" value="{{ season }}" placeholder="Season" class="w-24" />
     {% include "components/button.html" with text="Filter" variant="secondary" size="sm" %}
   </form>
 
-  <div class="mt-6 space-y-4">
+  <div class="space-y-4">
     {% if page_obj.object_list %}
       {% for club_profile in page_obj.object_list %}
         {% url 'world:club_detail' club_profile.club.id as club_url %}
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15]">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               {% if club_profile.crest_url %}
-                <img src="{{ club_profile.crest_url }}" alt="{{ club_profile.club.name }}" class="h-12 w-12 rounded-full border border-slate-200 bg-white" />
+                <img src="{{ club_profile.crest_url }}" alt="{{ club_profile.club.name }}" class="h-12 w-12 rounded-full ring-1 ring-white/10" />
               {% endif %}
               <div>
-                <div class="text-lg font-semibold text-slate-900">{{ club_profile.club.name }}</div>
-                <div class="text-sm text-slate-500">League {{ club_profile.league_id }} | Season {{ club_profile.season }}</div>
+                <div class="text-lg font-semibold text-white">{{ club_profile.club.name }}</div>
+                <div class="text-sm text-slate-400">League {{ club_profile.league_id }} | Season {{ club_profile.season }}</div>
               </div>
             </div>
             {% include "components/button.html" with text="View" href=club_url variant="secondary" size="sm" %}
           </div>
-          <div class="mt-4 grid gap-4 sm:grid-cols-3">
+          <div class="mt-4 grid gap-4 sm:grid-cols-3 border-t border-white/[0.05] pt-4">
             <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Squad size</div>
-              <div class="text-sm font-semibold text-slate-900">{{ club_profile.squad_size }}</div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Squad size</div>
+              <div class="text-sm font-semibold text-white">{{ club_profile.squad_size }}</div>
             </div>
             <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Average age</div>
-              <div class="text-sm font-semibold text-slate-900">{% if club_profile.avg_age %}{{ club_profile.avg_age|floatformat:1 }}{% else %}-{% endif %}</div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Average age</div>
+              <div class="text-sm font-semibold text-white">{% if club_profile.avg_age %}{{ club_profile.avg_age|floatformat:1 }}{% else %}-{% endif %}</div>
             </div>
             <div>
-              <div class="text-xs uppercase tracking-wide text-slate-400">Venue</div>
-              <div class="text-sm font-semibold text-slate-900">{{ club_profile.venue_name|default:"-" }}</div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Venue</div>
+              <div class="text-sm font-semibold text-white">{{ club_profile.venue_name|default:"-" }}</div>
             </div>
           </div>
         </div>
@@ -55,10 +56,12 @@
       <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       <div class="flex items-center gap-2">
         {% if page_obj.has_previous %}
-          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
+          <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+             href="?page={{ page_obj.previous_page_number }}&q={{ q }}&league_id={{ league_id }}&season={{ season }}">Prev</a>
         {% endif %}
         {% if page_obj.has_next %}
-          <a class="rounded-lg border border-slate-200 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ q }}&league_id={{ league_id }}&season={{ season }}">Next</a>
+          <a class="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 ring-1 ring-white/10 hover:bg-slate-700 no-underline"
+             href="?page={{ page_obj.next_page_number }}&q={{ q }}&league_id={{ league_id }}&season={{ season }}">Next</a>
         {% endif %}
       </div>
     </div>

@@ -2,30 +2,33 @@
 
 {% block title %}New Offer | TransferX{% endblock %}
 
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Make an offer</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Send terms to the selling club</p>{% endblock %}
+
 {% block content %}
-  {% include "components/page_header.html" with title="Make an offer" subtitle="Send terms to the selling club" %}
+  <div class="mx-auto max-w-2xl">
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Player</div>
+      <div class="mt-1 text-lg font-semibold text-white">{{ player.name }}</div>
+      {% if to_club %}
+        <div class="text-sm text-slate-400">To: {{ to_club.club_name }}</div>
+      {% else %}
+        <div class="text-sm text-slate-400">Free agent offer</div>
+      {% endif %}
 
-  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="text-sm text-slate-500">Player</div>
-    <div class="text-lg font-semibold text-slate-900">{{ player.name }}</div>
-    {% if to_club %}
-      <div class="text-sm text-slate-500">To: {{ to_club.club_name }}</div>
-    {% else %}
-      <div class="text-sm text-slate-500">Free agent offer</div>
-    {% endif %}
-
-    <form method="post" class="mt-6 space-y-4">
-      {% csrf_token %}
-      <input type="hidden" name="player" value="{{ player.id }}" />
-      {% if listing %}<input type="hidden" name="listing" value="{{ listing.id }}" />{% endif %}
-      {% include "components/form/error_summary.html" with form=form %}
-      {% include "components/form/field.html" with field=form.fee_amount %}
-      {% include "components/form/field.html" with field=form.wage_weekly %}
-      {% include "components/form/field.html" with field=form.contract_years %}
-      {% include "components/form/field.html" with field=form.contract_end_date %}
-      {% include "components/form/field.html" with field=form.expires_at %}
-      {% include "components/form/field.html" with field=form.add_ons_raw %}
-      {% include "components/button.html" with text="Send offer" variant="primary" size="md" %}
-    </form>
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="player" value="{{ player.id }}" />
+        {% if listing %}<input type="hidden" name="listing" value="{{ listing.id }}" />{% endif %}
+        {% include "components/form/error_summary.html" with form=form %}
+        {% include "components/form/field.html" with field=form.fee_amount %}
+        {% include "components/form/field.html" with field=form.wage_weekly %}
+        {% include "components/form/field.html" with field=form.contract_years %}
+        {% include "components/form/field.html" with field=form.contract_end_date %}
+        {% include "components/form/field.html" with field=form.expires_at %}
+        {% include "components/form/field.html" with field=form.add_ons_raw %}
+        {% include "components/button.html" with text="Send offer" variant="primary" size="md" extra_classes="w-full" %}
+      </form>
+    </div>
   </div>
 {% endblock %}

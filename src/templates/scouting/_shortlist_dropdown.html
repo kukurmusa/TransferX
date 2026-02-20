@@ -1,28 +1,29 @@
 {% if not can_scout %}
-  <span class="text-xs text-slate-400">Club profile required</span>
+  <span class="text-xs text-slate-500">Club profile required</span>
 {% elif shortlists %}
   <form method="post" action="{% url 'scouting:shortlist_add_any' %}" class="flex flex-wrap items-center gap-2">
     {% csrf_token %}
     <input type="hidden" name="player_id" value="{{ player.id }}" />
     <input type="hidden" name="next" value="{{ next_url }}" />
-    <select name="shortlist_id" class="text-xs">
+    <select name="shortlist_id" class="rounded-md border-0 bg-slate-800 px-2 py-1 text-xs text-white ring-1 ring-white/10 focus:ring-emerald-500">
       {% for shortlist in shortlists %}
         <option value="{{ shortlist.id }}">{{ shortlist.name }}</option>
       {% endfor %}
     </select>
-    <select name="priority" class="text-xs">
+    <select name="priority" class="rounded-md border-0 bg-slate-800 px-2 py-1 text-xs text-white ring-1 ring-white/10 focus:ring-emerald-500">
       <option value="1">P1</option>
       <option value="2">P2</option>
       <option value="3" selected>P3</option>
       <option value="4">P4</option>
       <option value="5">P5</option>
     </select>
-    <button type="submit" class="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:border-slate-300">
+    <button type="submit" class="rounded-lg bg-slate-700 px-3 py-1 text-xs font-medium text-slate-200 ring-1 ring-white/10 transition-colors hover:bg-slate-600">
       Add
     </button>
   </form>
 {% else %}
-  <a class="text-xs font-medium text-slate-600 hover:text-slate-900" href="{% url 'scouting:shortlist_new' %}">
+  {% url 'scouting:shortlist_new' as new_url %}
+  <a class="text-xs font-medium text-slate-400 no-underline hover:text-emerald-400" href="{{ new_url }}">
     Create shortlist
   </a>
 {% endif %}

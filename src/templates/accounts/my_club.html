@@ -2,42 +2,39 @@
 
 {% block title %}My Club | TransferX{% endblock %}
 
-{% block content %}
-  {% include "components/page_header.html" with title="My club" subtitle="Budgets, offers, and listings" %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">My club</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Budgets, offers, and listings</p>{% endblock %}
 
+{% block content %}
   <div class="grid gap-4 md:grid-cols-2">
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-sm font-semibold text-slate-900">Budgets</h2>
+    {# Budgets #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <h2 class="text-sm font-semibold text-white">Budgets</h2>
       {% if finance %}
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
           {% include "components/stat_card.html" with label="Transfer remaining" value=finance.transfer_remaining prefix="GBP" %}
           {% include "components/stat_card.html" with label="Wage remaining (weekly)" value=finance.wage_remaining_weekly prefix="GBP" %}
         </div>
-        <div class="mt-4 space-y-2 text-sm text-slate-600">
-          <div class="flex items-center justify-between">
-            <span>Transfer reserved / committed</span>
-            <span class="font-semibold text-slate-900">GBP {{ finance.transfer_reserved }} / GBP {{ finance.transfer_committed }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span>Wage reserved / committed</span>
-            <span class="font-semibold text-slate-900">GBP {{ finance.wage_reserved_weekly }} / GBP {{ finance.wage_committed_weekly }}</span>
-          </div>
+        <div class="mt-4 space-y-1">
+          {% include "components/metric.html" with label="Transfer reserved / committed" value=finance.transfer_reserved %}
+          {% include "components/metric.html" with label="Wage reserved / committed" value=finance.wage_reserved_weekly %}
         </div>
       {% else %}
         <div class="mt-2 text-sm text-slate-500">No finance profile available.</div>
       {% endif %}
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-sm font-semibold text-slate-900">My listings</h2>
+    {# My listings #}
+    <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+      <h2 class="text-sm font-semibold text-white">My listings</h2>
       {% if my_auctions %}
-        <div class="mt-3 space-y-3">
+        <div class="mt-3 space-y-1">
           {% for auction in my_auctions %}
             {% url 'auctions:detail' auction.id as auction_url %}
-            <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+            <div class="flex items-center justify-between rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
               <div>
-                <div class="font-semibold text-slate-900">{{ auction.player.name }}</div>
-            <div class="text-xs text-slate-500">Status: {{ auction.get_status_display }}</div>
+                <div class="font-semibold text-white">{{ auction.player.name }}</div>
+                <div class="text-xs text-slate-500">{{ auction.get_status_display }}</div>
               </div>
               {% include "components/button.html" with text="Manage" href=auction_url variant="secondary" size="sm" %}
             </div>
@@ -49,15 +46,16 @@
     </div>
   </div>
 
-  <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 class="text-sm font-semibold text-slate-900">My active offers</h2>
+  {# Active offers #}
+  <div class="mt-6 rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
+    <h2 class="text-sm font-semibold text-white">My active offers</h2>
     {% if bid_rows %}
-      <div class="mt-3 space-y-3">
+      <div class="mt-3 space-y-1">
         {% for row in bid_rows %}
           {% url 'auctions:detail' row.bid.auction.id as bid_auction_url %}
-          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm transition-colors hover:bg-white/[0.03] {% if forloop.counter|divisibleby:2 %}bg-slate-800/40{% endif %}">
             <div>
-              <div class="font-semibold text-slate-900">{{ row.bid.auction.player.name }}</div>
+              <div class="font-semibold text-white">{{ row.bid.auction.player.name }}</div>
               <div class="text-xs text-slate-500">My offer: GBP {{ row.bid.amount }} | Wage GBP {{ row.bid.wage_offer_weekly|default:"-" }}</div>
               <div class="text-xs text-slate-500">Current best: {% if row.best %}GBP {{ row.best }}{% else %}-{% endif %}</div>
             </div>
