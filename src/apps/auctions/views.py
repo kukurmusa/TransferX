@@ -70,7 +70,7 @@ def auction_detail(request, pk: int):
         and auction.status == Auction.Status.OPEN
     )
     bid_ladder = auction.bids.filter(status=Bid.Status.ACTIVE).order_by("-amount", "created_at")
-    seller_bids = auction.bids.select_related("buyer", "buyer__club_profile").order_by("-amount")
+    seller_bids = auction.bids.select_related("buyer", "buyer__club").order_by("-amount")
     best_bid = get_best_bid_amount(auction)
     bid_count = auction.bids.count()
     bids_per_hour = 0.0
@@ -89,7 +89,7 @@ def auction_detail(request, pk: int):
     )
     form = PlayerForm.objects.filter(player=auction.player).first()
     finance = None
-    if can_bid and hasattr(request.user, "club_profile"):
+    if can_bid and hasattr(request.user, "club"):
         finance = get_or_create_finance_for_user(request.user)
 
     timeline_events = []
@@ -232,7 +232,7 @@ def seller_bid_table_partial(request, pk: int):
     if not (is_seller(request.user) and auction.seller_id == request.user.id):
         return HttpResponseForbidden("Not allowed")
 
-    bids = auction.bids.select_related("buyer", "buyer__club_profile").order_by("-amount")
+    bids = auction.bids.select_related("buyer", "buyer__club").order_by("-amount")
     return render(
         request, "auctions/_seller_bid_table.html", {"auction": auction, "bids": bids}
     )
@@ -259,13 +259,13 @@ def bids_csv(request, pk: int):
         ]
     )
 
-    bids = auction.bids.select_related("buyer__club_profile").order_by("created_at")
+    bids = auction.bids.select_related("buyer__club").order_by("created_at")
     for bid in bids:
         writer.writerow(
             [
                 bid.id,
                 bid.created_at.isoformat(),
-                bid.buyer.club_profile.club_name if hasattr(bid.buyer, "club_profile") else "",
+                bid.buyer.club.name if hasattr(bid.buyer, "club") else "",
                 bid.amount,
                 bid.wage_offer_weekly or "",
                 bid.status,

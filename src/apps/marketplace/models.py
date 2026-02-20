@@ -18,7 +18,7 @@ class Listing(models.Model):
 
     player = models.ForeignKey("players.Player", on_delete=models.CASCADE, related_name="listings")
     listed_by_club = models.ForeignKey(
-        "accounts.ClubProfile",
+        "accounts.Club",
         null=True,
         blank=True,
         related_name="listings",
@@ -52,7 +52,7 @@ class Listing(models.Model):
 class ListingInvite(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="invites")
     club = models.ForeignKey(
-        "accounts.ClubProfile", on_delete=models.CASCADE, related_name="listing_invites"
+        "accounts.Club", on_delete=models.CASCADE, related_name="listing_invites"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -64,7 +64,7 @@ class ListingInvite(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.listing_id} -> {self.club.club_name}"
+        return f"{self.listing_id} -> {self.club.name}"
 
 
 class Offer(models.Model):
@@ -82,10 +82,10 @@ class Offer(models.Model):
         Listing, null=True, blank=True, on_delete=models.SET_NULL, related_name="offers"
     )
     from_club = models.ForeignKey(
-        "accounts.ClubProfile", on_delete=models.CASCADE, related_name="offers_sent"
+        "accounts.Club", on_delete=models.CASCADE, related_name="offers_sent"
     )
     to_club = models.ForeignKey(
-        "accounts.ClubProfile",
+        "accounts.Club",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -118,7 +118,7 @@ class OfferMessage(models.Model):
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, related_name="messages")
     sender_user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
     sender_club = models.ForeignKey(
-        "accounts.ClubProfile", null=True, blank=True, on_delete=models.SET_NULL
+        "accounts.Club", null=True, blank=True, on_delete=models.SET_NULL
     )
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -142,7 +142,7 @@ class OfferEvent(models.Model):
     event_type = models.CharField(max_length=20, choices=EventType.choices, db_index=True)
     actor_user = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.SET_NULL)
     actor_club = models.ForeignKey(
-        "accounts.ClubProfile", null=True, blank=True, on_delete=models.SET_NULL
+        "accounts.Club", null=True, blank=True, on_delete=models.SET_NULL
     )
     payload = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -3,7 +3,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from apps.players.models import Player
-from apps.stats.models import PlayerStatsSnapshot, PlayerVendorMap, VendorSyncState
+from apps.stats.models import PlayerStatsSnapshot, VendorSyncState
 
 
 class DummyClient:
@@ -32,14 +32,14 @@ def test_sync_command_creates_snapshots(
     settings.APISPORTS_KEY = "test-key"
     settings.API_FOOTBALL_BASE_URL = "https://example.test"
 
-    player = Player.objects.create(
+    Player.objects.create(
         name="Player One",
         age=22,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
+        vendor_id="123",
     )
-    PlayerVendorMap.objects.create(player=player, vendor_player_id=123)
 
     monkeypatch.setattr(
         "apps.stats.management.commands.sync_player_stats.ApiFootballClient",
@@ -61,14 +61,14 @@ def test_sync_command_idempotency(monkeypatch, settings, seller_user):
     settings.APISPORTS_KEY = "test-key"
     settings.API_FOOTBALL_BASE_URL = "https://example.test"
 
-    player = Player.objects.create(
+    Player.objects.create(
         name="Player Two",
         age=24,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
+        vendor_id="456",
     )
-    PlayerVendorMap.objects.create(player=player, vendor_player_id=456)
 
     monkeypatch.setattr(
         "apps.stats.management.commands.sync_player_stats.ApiFootballClient",

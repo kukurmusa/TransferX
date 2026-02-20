@@ -4,7 +4,7 @@ from .models import ClubFinance
 
 
 def get_or_create_finance_for_user(user) -> ClubFinance:
-    club = user.club_profile
+    club = user.club
     finance, _ = ClubFinance.objects.get_or_create(club=club)
     return finance
 

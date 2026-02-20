@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from apps.accounts.models import ClubFinance, ClubProfile
+from apps.accounts.models import Club, ClubFinance
 from apps.accounts.utils import ensure_group
 
 
@@ -31,8 +31,8 @@ class Command(BaseCommand):
                 user.is_superuser = True
             user.save()
             user.groups.add(group)
-            club, _ = ClubProfile.objects.get_or_create(
-                user=user, defaults={"club_name": club_name}
+            club, _ = Club.objects.get_or_create(
+                user=user, defaults={"name": club_name}
             )
             ClubFinance.objects.get_or_create(
                 club=club,

@@ -4,7 +4,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
 from django.utils import timezone
 
-from apps.stats.models import PlayerStatsSnapshot, PlayerVendorMap, VendorSyncState
+from apps.players.models import Player
+from apps.stats.models import PlayerStatsSnapshot, VendorSyncState
 from apps.stats.vendor.api_football_client import ApiFootballClient, ApiFootballError
 from django.conf import settings
 
@@ -47,9 +48,8 @@ class Command(BaseCommand):
         sync_state.last_run_at = timezone.now()
         sync_state.save(update_fields=["last_run_at"])
 
-        mapped_players = (
-            PlayerVendorMap.objects.select_related("player")
-            .filter(vendor="api_sports_v3")
+        players = (
+            Player.objects.filter(vendor_id__isnull=False)
             .order_by("created_at")[:limit]
         )
 
@@ -58,11 +58,11 @@ class Command(BaseCommand):
         failed = 0
         skipped = 0
 
-        for mapping in mapped_players:
+        for player in players:
             processed += 1
             try:
                 payload = client.get_player_stats(
-                    mapping.vendor_player_id, season=season, league_id=league_id
+                    player.vendor_id, season=season, league_id=league_id
                 )
                 metrics = _extract_metrics(payload)
 
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                 else:
                     try:
                         PlayerStatsSnapshot.objects.create(
-                            player=mapping.player,
+                            player=player,
                             vendor="api_sports_v3",
                             as_of=as_of,
                             season=season,

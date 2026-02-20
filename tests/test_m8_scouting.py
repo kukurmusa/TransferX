@@ -12,7 +12,7 @@ from apps.scouting.services import add_player_to_shortlist, set_player_interest
 
 @pytest.mark.django_db
 def test_shortlist_crud_and_permissions(client, seller_user, buyer_user):
-    shortlist = Shortlist.objects.create(club=seller_user.club_profile, name="Strikers")
+    shortlist = Shortlist.objects.create(club=seller_user.club, name="Strikers")
 
     client.force_login(buyer_user)
     response = client.get(f"/scouting/shortlists/{shortlist.id}/")
@@ -28,7 +28,7 @@ def test_add_player_to_shortlist_idempotent(seller_user):
         current_club=None,
         created_by=seller_user,
     )
-    shortlist = Shortlist.objects.create(club=seller_user.club_profile, name="Summer")
+    shortlist = Shortlist.objects.create(club=seller_user.club, name="Summer")
 
     add_player_to_shortlist(shortlist, player, priority=2, notes="First")
     add_player_to_shortlist(shortlist, player, priority=4, notes="Updated")
@@ -48,13 +48,13 @@ def test_set_interest_upsert(seller_user):
         created_by=seller_user,
     )
     interest = set_player_interest(
-        seller_user.club_profile,
+        seller_user.club,
         player,
         level=PlayerInterest.Level.WATCHING,
         stage=PlayerInterest.Stage.SCOUTED,
     )
     interest = set_player_interest(
-        seller_user.club_profile,
+        seller_user.club,
         player,
         level=PlayerInterest.Level.PRIORITY,
         stage=PlayerInterest.Stage.NEGOTIATING,
@@ -70,26 +70,26 @@ def test_targets_dashboard_indicators(client, seller_user, buyer_user):
         name="Target Three",
         age=21,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     set_player_interest(
-        buyer_user.club_profile,
+        buyer_user.club,
         player,
         level=PlayerInterest.Level.WATCHING,
         stage=PlayerInterest.Stage.SCOUTED,
     )
     Listing.objects.create(
         player=player,
-        listed_by_club=seller_user.club_profile,
+        listed_by_club=seller_user.club,
         status=Listing.Status.OPEN,
         listing_type=Listing.ListingType.TRANSFER,
         visibility=Listing.Visibility.PUBLIC,
     )
     Offer.objects.create(
         player=player,
-        from_club=buyer_user.club_profile,
-        to_club=seller_user.club_profile,
+        from_club=buyer_user.club,
+        to_club=seller_user.club,
         fee_amount=Decimal("1000000"),
         wage_weekly=Decimal("5000"),
         status=Offer.Status.SENT,

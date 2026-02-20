@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 
-from apps.stats.models import PlayerStatsSnapshot, PlayerVendorMap, VendorSyncState
+from apps.players.models import Player
+from apps.stats.models import PlayerStatsSnapshot, VendorSyncState
 
 
 class Command(BaseCommand):
@@ -13,7 +14,7 @@ class Command(BaseCommand):
         limit = options["limit"]
 
         sync_states = list(VendorSyncState.objects.all())
-        maps_count = PlayerVendorMap.objects.count()
+        maps_count = Player.objects.filter(vendor_id__isnull=False).count()
         snapshots_count = PlayerStatsSnapshot.objects.count()
 
         self.stdout.write(f"VendorSyncState: {len(sync_states)}")
@@ -21,7 +22,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"- {state.vendor} last_run={state.last_run_at} last_success={state.last_success_at} errors={state.error_count}"
             )
-        self.stdout.write(f"PlayerVendorMap: {maps_count}")
+        self.stdout.write(f"Mapped players (vendor_id set): {maps_count}")
         self.stdout.write(f"PlayerStatsSnapshot: {snapshots_count}")
 
         self.stdout.write("")

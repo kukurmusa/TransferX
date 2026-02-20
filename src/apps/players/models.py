@@ -23,7 +23,7 @@ class Player(models.Model):
     nationality = models.CharField(max_length=100, blank=True, default="")
     position = models.CharField(max_length=10, choices=Position.choices, blank=True)
     current_club = models.ForeignKey(
-        "accounts.ClubProfile",
+        "accounts.Club",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -39,6 +39,7 @@ class Player(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_players"
     )
+    vendor_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -49,7 +50,7 @@ class Player(models.Model):
 class Contract(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="contracts")
     club = models.ForeignKey(
-        "accounts.ClubProfile", on_delete=models.CASCADE, related_name="contracts"
+        "accounts.Club", on_delete=models.CASCADE, related_name="contracts"
     )
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -60,4 +61,4 @@ class Contract(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return f"{self.player.name} @ {self.club.club_name}"
+        return f"{self.player.name} @ {self.club.name}"

@@ -1,17 +1,12 @@
 from django.contrib import admin
 
-from .models import PlayerForm, PlayerStatsSnapshot, PlayerVendorMap, VendorSyncState
+from .models import PlayerForm, PlayerStatsSnapshot, VendorSyncState
 
 
 @admin.register(VendorSyncState)
 class VendorSyncStateAdmin(admin.ModelAdmin):
     list_display = ("vendor", "last_success_at", "last_run_at", "error_count")
 
-
-@admin.register(PlayerVendorMap)
-class PlayerVendorMapAdmin(admin.ModelAdmin):
-    list_display = ("player", "vendor", "vendor_player_id", "created_at")
-    search_fields = ("player__name", "vendor_player_id")
 
 
 @admin.register(PlayerStatsSnapshot)

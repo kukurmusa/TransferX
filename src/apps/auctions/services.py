@@ -53,7 +53,7 @@ def close_if_expired(auction: Auction, now=None) -> bool:
         for bid in active_bids:
             finance = (
                 ClubFinance.objects.select_for_update()
-                .filter(club=bid.buyer.club_profile)
+                .filter(club=bid.buyer.club)
                 .first()
             )
             if finance:
@@ -119,11 +119,11 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
 
     finance = (
         ClubFinance.objects.select_for_update()
-        .filter(club=buyer.club_profile)
+        .filter(club=buyer.club)
         .first()
     )
     if not finance:
-        finance = ClubFinance.objects.create(club=buyer.club_profile)
+        finance = ClubFinance.objects.create(club=buyer.club)
 
     existing = (
         Bid.objects.select_for_update()
@@ -209,11 +209,11 @@ def accept_bid(auction: Auction, bid: Bid, actor) -> None:
 
     winning_finance = (
         ClubFinance.objects.select_for_update()
-        .filter(club=bid.buyer.club_profile)
+        .filter(club=bid.buyer.club)
         .first()
     )
     if not winning_finance:
-        winning_finance = ClubFinance.objects.create(club=bid.buyer.club_profile)
+        winning_finance = ClubFinance.objects.create(club=bid.buyer.club)
 
     bid.status = Bid.Status.ACCEPTED
     bid.save(update_fields=["status"])
@@ -234,7 +234,7 @@ def accept_bid(auction: Auction, bid: Bid, actor) -> None:
     for other in other_bids:
         finance = (
             ClubFinance.objects.select_for_update()
-            .filter(club=other.buyer.club_profile)
+            .filter(club=other.buyer.club)
             .first()
         )
         if finance:

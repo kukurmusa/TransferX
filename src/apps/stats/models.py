@@ -19,25 +19,6 @@ class VendorSyncState(models.Model):
         return self.vendor
 
 
-class PlayerVendorMap(models.Model):
-    player = models.OneToOneField(
-        "players.Player", on_delete=models.CASCADE, related_name="vendor_map"
-    )
-    vendor = models.CharField(max_length=100, default="api_sports_v3", db_index=True)
-    vendor_player_id = models.BigIntegerField(db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["vendor", "vendor_player_id"], name="unique_vendor_player_id"
-            ),
-            models.UniqueConstraint(fields=["vendor", "player"], name="unique_vendor_player"),
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.player.name} -> {self.vendor_player_id}"
-
 
 class PlayerStatsSnapshot(models.Model):
     player = models.ForeignKey(
@@ -94,3 +75,35 @@ class PlayerForm(models.Model):
 
     def __str__(self) -> str:
         return f"{self.player.name} form {self.form_score}"
+
+
+class PlayerStats(models.Model):
+    player = models.ForeignKey(
+        "players.Player", on_delete=models.CASCADE, related_name="season_stats"
+    )
+    current_club = models.ForeignKey(
+        "accounts.Club", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    vendor = models.CharField(max_length=50, blank=True, default="")
+    league_id = models.IntegerField(db_index=True)
+    season = models.IntegerField(db_index=True)
+    position = models.CharField(max_length=50, blank=True, default="")
+    minutes = models.IntegerField(null=True, blank=True)
+    goals = models.IntegerField(null=True, blank=True)
+    assists = models.IntegerField(null=True, blank=True)
+    avg_rating = models.FloatField(null=True, blank=True)
+    form_score = models.FloatField(null=True, blank=True)
+    trend = models.FloatField(null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "vendor", "league_id", "season"],
+                name="uq_playerstats_player_vendor_league_season",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.player.name} {self.season} L{self.league_id}"

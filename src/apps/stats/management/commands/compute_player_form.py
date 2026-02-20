@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.players.models import Player
 from apps.stats.form import compute_form_from_snapshots, compute_trend
-from apps.stats.models import PlayerForm, PlayerStatsSnapshot, PlayerVendorMap
+from apps.stats.models import PlayerForm, PlayerStatsSnapshot
 
 
 class Command(BaseCommand):
@@ -24,9 +25,8 @@ class Command(BaseCommand):
         min_minutes = options["min_minutes"]
         dry_run = options["dry_run"]
 
-        mappings = (
-            PlayerVendorMap.objects.select_related("player")
-            .filter(vendor="api_sports_v3")[:limit]
+        players = (
+            Player.objects.filter(vendor_id__isnull=False)[:limit]
         )
 
         processed = 0
@@ -34,11 +34,11 @@ class Command(BaseCommand):
         skipped = 0
         failed = 0
 
-        for mapping in mappings:
+        for player in players:
             processed += 1
             snapshots = list(
                 PlayerStatsSnapshot.objects.filter(
-                    player=mapping.player,
+                    player=player,
                     vendor="api_sports_v3",
                     season=season,
                     league_id=league_id,
@@ -59,7 +59,7 @@ class Command(BaseCommand):
                 continue
 
             PlayerForm.objects.update_or_create(
-                player=mapping.player,
+                player=player,
                 vendor="api_sports_v3",
                 season=season,
                 league_id=league_id,

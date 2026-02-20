@@ -2,11 +2,11 @@ from django.conf import settings
 from django.db import models
 
 
-class ClubProfile(models.Model):
+class Club(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="club_profile"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="club"
     )
-    club_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     country = models.CharField(max_length=100, blank=True, default="")
     city = models.CharField(max_length=100, blank=True, default="")
     league_name = models.CharField(max_length=200, blank=True, default="")
@@ -23,15 +23,19 @@ class ClubProfile(models.Model):
         default="UNVERIFIED",
         db_index=True,
     )
+    vendor_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = "accounts_clubprofile"
+
     def __str__(self) -> str:
-        return self.club_name
+        return self.name
 
 
 class ClubFinance(models.Model):
     club = models.OneToOneField(
-        ClubProfile, on_delete=models.CASCADE, related_name="finance"
+        Club, on_delete=models.CASCADE, related_name="finance"
     )
     transfer_budget_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     wage_budget_total_weekly = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -50,4 +54,4 @@ class ClubFinance(models.Model):
         return self.wage_budget_total_weekly - self.wage_reserved_weekly - self.wage_committed_weekly
 
     def __str__(self) -> str:
-        return f"{self.club.club_name} finance"
+        return f"{self.club.name} finance"

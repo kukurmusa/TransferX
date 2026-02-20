@@ -1,11 +1,11 @@
 from django.db import models
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.players.models import Player
 
 
 class Shortlist(models.Model):
-    club = models.ForeignKey(ClubProfile, related_name="shortlists", on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, related_name="shortlists", on_delete=models.CASCADE)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -17,7 +17,7 @@ class Shortlist(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.club.club_name}: {self.name}"
+        return f"{self.club.name}: {self.name}"
 
 
 class ShortlistItem(models.Model):
@@ -56,7 +56,7 @@ class PlayerInterest(models.Model):
         DROPPED = "DROPPED", "Dropped"
 
     club = models.ForeignKey(
-        ClubProfile, related_name="player_interests", on_delete=models.CASCADE
+        Club, related_name="player_interests", on_delete=models.CASCADE
     )
     player = models.ForeignKey(Player, related_name="interests", on_delete=models.CASCADE)
     level = models.CharField(
@@ -77,4 +77,4 @@ class PlayerInterest(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.club.club_name}: {self.player.name}"
+        return f"{self.club.name}: {self.player.name}"

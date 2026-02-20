@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.auctions.models import Auction, Bid
 from apps.players.models import Player
 
@@ -25,7 +25,7 @@ def user_factory(db, groups):
         user_model = get_user_model()
         user = user_model.objects.create_user(username=username, password="password123")
         user.groups.add(groups[group_name])
-        ClubProfile.objects.create(user=user, club_name=club_name)
+        Club.objects.create(user=user, name=club_name)
         return user
 
     return _create
@@ -52,7 +52,7 @@ def auction_with_bids(seller_user, buyer_user, buyer_user2):
         name="Player One",
         age=24,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(

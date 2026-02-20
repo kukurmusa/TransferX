@@ -23,7 +23,7 @@ class Command(BaseCommand):
         except user_model.DoesNotExist:
             raise CommandError("Owner user not found")
 
-        if not hasattr(owner, "club_profile"):
+        if not hasattr(owner, "club"):
             raise CommandError("Owner has no club profile")
 
         created = 0
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                     name=name,
                     age=int(row.get("age") or 0) or None,
                     position=row.get("position") or "",
-                    current_club=owner.club_profile,
+                    current_club=owner.club,
                     created_by=owner,
                 )
                 created += 1

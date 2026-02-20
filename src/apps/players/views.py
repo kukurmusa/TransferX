@@ -33,8 +33,8 @@ def player_create(request):
         if form.is_valid():
             player = form.save(commit=False)
             player.created_by = request.user
-            if hasattr(request.user, "club_profile"):
-                player.current_club = request.user.club_profile
+            if hasattr(request.user, "club"):
+                player.current_club = request.user.club
             normalize_player_market_flags(player)
             player.save()
             messages.success(request, "Player created.")
@@ -52,8 +52,8 @@ def player_edit(request, pk: int):
         form = PlayerForm(request.POST, instance=player, user=request.user)
         if form.is_valid():
             player = form.save(commit=False)
-            if hasattr(request.user, "club_profile"):
-                player.current_club = request.user.club_profile
+            if hasattr(request.user, "club"):
+                player.current_club = request.user.club
             normalize_player_market_flags(player)
             player.save()
             messages.success(request, "Player updated.")
@@ -70,7 +70,7 @@ def free_agents(request):
 
     params = request.GET.copy()
     params["free_agent_only"] = "1"
-    queryset = player_search_queryset(getattr(request.user, "club_profile", None), params)
+    queryset = player_search_queryset(getattr(request.user, "club", None), params)
     from django.core.paginator import Paginator
 
     paginator = Paginator(queryset, 25)
@@ -79,7 +79,7 @@ def free_agents(request):
     base_query.pop("page", None)
     shortlists = []
     interest_map = {}
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     can_scout = bool(club)
     if club:
         from apps.scouting.models import PlayerInterest, Shortlist

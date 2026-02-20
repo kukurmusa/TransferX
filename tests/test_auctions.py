@@ -23,8 +23,8 @@ def test_visibility_buyer_cannot_see_identities(client, auction_with_bids, buyer
     assert str(bid2.amount) in content
     assert buyer_user.username not in content
     assert buyer_user2.username not in content
-    assert buyer_user.club_profile.club_name not in content
-    assert buyer_user2.club_profile.club_name not in content
+    assert buyer_user.club.name not in content
+    assert buyer_user2.club.name not in content
 
 
 @pytest.mark.django_db
@@ -36,7 +36,7 @@ def test_seller_can_see_identities(client, auction_with_bids, seller_user, buyer
     content = response.content.decode("utf-8")
 
     assert buyer_user.username in content
-    assert buyer_user.club_profile.club_name in content
+    assert buyer_user.club.name in content
 
 
 @pytest.mark.django_db
@@ -45,7 +45,7 @@ def test_cannot_bid_when_closed_or_accepted(client, auction_with_bids, seller_us
     accept_bid(auction, bid1, seller_user)
 
     client.force_login(buyer_user2)
-    ClubFinance.objects.filter(club=buyer_user2.club_profile).update(
+    ClubFinance.objects.filter(club=buyer_user2.club).update(
         transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
     )
     response = client.post(
@@ -101,7 +101,7 @@ def test_min_increment_enforced(client, seller_user, buyer_user):
         name="Player Min",
         age=21,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -112,7 +112,7 @@ def test_min_increment_enforced(client, seller_user, buyer_user):
     )
 
     client.force_login(buyer_user)
-    ClubFinance.objects.filter(club=buyer_user.club_profile).update(
+    ClubFinance.objects.filter(club=buyer_user.club).update(
         transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
     )
     response = client.post(
@@ -140,7 +140,7 @@ def test_auto_close_on_deadline_blocks_bids(client, seller_user, buyer_user):
         name="Player Close",
         age=25,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -150,7 +150,7 @@ def test_auto_close_on_deadline_blocks_bids(client, seller_user, buyer_user):
     )
 
     client.force_login(buyer_user)
-    ClubFinance.objects.filter(club=buyer_user.club_profile).update(
+    ClubFinance.objects.filter(club=buyer_user.club).update(
         transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
     )
     response = client.post(
@@ -170,7 +170,7 @@ def test_accept_below_reserve_allowed_but_flagged(seller_user, buyer_user):
         name="Player Reserve",
         age=23,
         position=Player.Position.FWD,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -196,7 +196,7 @@ def test_buyer_still_cannot_see_reserve_value(client, seller_user, buyer_user):
         name="Player Hidden",
         age=24,
         position=Player.Position.GK,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(

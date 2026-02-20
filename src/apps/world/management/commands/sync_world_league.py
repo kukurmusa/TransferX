@@ -5,17 +5,18 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from apps.stats.vendor.api_football_client import ApiFootballClient, ApiFootballError
+from apps.world.profile_utils import parse_stats_from_payload
 from apps.world.sync import (
     VENDOR,
     upsert_club,
     upsert_league,
-    upsert_membership,
     upsert_player,
+    upsert_player_stats,
 )
 
 
 class Command(BaseCommand):
-    help = "Sync world clubs and players for a league/season using API-Sports v3."
+    help = "Sync clubs and players for a league/season using API-Sports v3."
 
     def add_arguments(self, parser):
         parser.add_argument("--season", type=int, required=True)
@@ -49,24 +50,17 @@ class Command(BaseCommand):
                     continue
                 club = upsert_club(
                     api_team_id=api_team_id,
-                    league_id=league_id,
-                    season=season,
                     name=team.get("name", ""),
-                    code=team.get("code", "") or "",
                     country=team.get("country", "") or "",
                     logo_url=team.get("logo", "") or "",
-                    founded=team.get("founded"),
-                    venue_name=venue.get("name", "") or "",
                     venue_city=venue.get("city", "") or "",
-                    venue_capacity=venue.get("capacity"),
-                    payload=row,
                 )
                 clubs_by_id[api_team_id] = club
                 clubs_upserted += 1
 
             pages_processed = 0
             players_upserted = 0
-            memberships_upserted = 0
+            stats_upserted = 0
             page = 1
             total_pages = 1
 
@@ -88,20 +82,6 @@ class Command(BaseCommand):
                     api_player_id = player_data.get("id")
                     if not api_player_id:
                         continue
-                    player = upsert_player(
-                        api_player_id=api_player_id,
-                        name=player_data.get("name", ""),
-                        firstname=player_data.get("firstname", "") or "",
-                        lastname=player_data.get("lastname", "") or "",
-                        age=player_data.get("age"),
-                        nationality=player_data.get("nationality", "") or "",
-                        height=player_data.get("height", "") or "",
-                        weight=player_data.get("weight", "") or "",
-                        photo_url=player_data.get("photo", "") or "",
-                        injured=player_data.get("injured"),
-                        payload=row,
-                    )
-                    players_upserted += 1
 
                     for stat in row.get("statistics", []) or []:
                         team = stat.get("team") or {}
@@ -109,11 +89,25 @@ class Command(BaseCommand):
                         club = clubs_by_id.get(team_id)
                         if not club:
                             continue
-                        league = stat.get("league") or {}
-                        league_name = league.get("name") or ""
-                        league_country = league.get("country") or ""
-                        league_id_value = league.get("id") or league_id
-                        season_value = league.get("season") or season
+
+                        games = stat.get("games") or {}
+                        position = games.get("position", "") or ""
+
+                        player = upsert_player(
+                            api_player_id=api_player_id,
+                            name=player_data.get("name", ""),
+                            club=club,
+                            age=player_data.get("age"),
+                            nationality=player_data.get("nationality", "") or "",
+                            position=position,
+                        )
+                        players_upserted += 1
+
+                        league_info = stat.get("league") or {}
+                        league_name = league_info.get("name") or ""
+                        league_country = league_info.get("country") or ""
+                        league_id_value = league_info.get("id") or league_id
+                        season_value = league_info.get("season") or season
                         if league_name:
                             upsert_league(
                                 league_id=league_id_value,
@@ -122,18 +116,17 @@ class Command(BaseCommand):
                                 country=league_country,
                             )
 
-                        games = stat.get("games") or {}
-                        membership = upsert_membership(
-                            club=club,
+                        parsed_stats = parse_stats_from_payload(stat)
+                        upsert_player_stats(
                             player=player,
+                            club=club,
                             league_id=league_id_value,
                             season=season_value,
-                            position=games.get("position", "") or "",
-                            number=games.get("number"),
+                            position=position,
                             payload=stat,
+                            stats=parsed_stats,
                         )
-                        if membership:
-                            memberships_upserted += 1
+                        stats_upserted += 1
 
                 if sleep_ms:
                     time.sleep(sleep_ms / 1000)
@@ -143,5 +136,5 @@ class Command(BaseCommand):
             "Synced league "
             f"vendor={VENDOR} league_id={league_id} season={season} "
             f"clubs={clubs_upserted} players={players_upserted} "
-            f"memberships={memberships_upserted} pages={pages_processed}"
+            f"stats={stats_upserted} pages={pages_processed}"
         )

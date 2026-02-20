@@ -64,7 +64,7 @@ DATABASES = {
         "NAME": get_env("POSTGRES_DB", "transferx"),
         "USER": get_env("POSTGRES_USER", "transferx"),
         "PASSWORD": get_env("POSTGRES_PASSWORD", "transferx"),
-        "HOST": get_env("POSTGRES_HOST", "db"),
+        "HOST": get_env("POSTGRES_HOST", "localhost"),
         "PORT": get_env("POSTGRES_PORT", "5432"),
     }
 }

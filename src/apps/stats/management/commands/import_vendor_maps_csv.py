@@ -1,14 +1,12 @@
 import csv
 
-from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.players.models import Player
-from apps.stats.models import PlayerVendorMap
 
 
 class Command(BaseCommand):
-    help = "Bulk import player vendor mappings from CSV"
+    help = "Bulk import player vendor_id values from CSV"
 
     def add_arguments(self, parser):
         parser.add_argument("--file", type=str, required=True)
@@ -30,7 +28,6 @@ class Command(BaseCommand):
                 player_name = (row.get("player_name") or "").strip()
                 owner_username = (row.get("owner_username") or "").strip()
                 vendor_player_id = row.get("vendor_player_id")
-                vendor = (row.get("vendor") or "api_sports_v3").strip()
 
                 if not (player_name and owner_username and vendor_player_id):
                     skipped += 1
@@ -44,17 +41,13 @@ class Command(BaseCommand):
                     skipped += 1
                     continue
 
-                mapping, was_created = PlayerVendorMap.objects.update_or_create(
-                    player=player,
-                    defaults={
-                        "vendor": vendor,
-                        "vendor_player_id": int(vendor_player_id),
-                    },
-                )
-                if was_created:
-                    created += 1
-                else:
+                old_vendor_id = player.vendor_id
+                player.vendor_id = str(vendor_player_id).strip()
+                player.save(update_fields=["vendor_id"])
+                if old_vendor_id:
                     updated += 1
+                else:
+                    created += 1
 
         self.stdout.write(
             self.style.SUCCESS(

@@ -11,7 +11,7 @@
     {% for bid in bids %}
       <div class="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-2 border-t border-white/5 px-4 py-3 text-sm transition-colors hover:bg-white/[0.03]">
         <div class="text-white">{{ bid.buyer.username }}</div>
-        <div class="text-slate-400">{{ bid.buyer.club_profile.club_name|default:"-" }}</div>
+        <div class="text-slate-400">{{ bid.buyer.club.name|default:"-" }}</div>
         <div class="font-semibold text-white">GBP {{ bid.amount }}</div>
         <div class="text-slate-400">{% if bid.wage_offer_weekly %}GBP {{ bid.wage_offer_weekly }}{% else %}-{% endif %}</div>
         <div class="text-slate-400">{{ bid.get_status_display }}</div>

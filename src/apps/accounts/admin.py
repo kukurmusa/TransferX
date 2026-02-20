@@ -1,13 +1,13 @@
 from django.contrib import admin, messages
 
-from .models import ClubFinance, ClubProfile
+from .models import Club, ClubFinance
 
 
-@admin.register(ClubProfile)
-class ClubProfileAdmin(admin.ModelAdmin):
-    list_display = ("club_name", "league_name", "country", "verified_status", "created_at")
+@admin.register(Club)
+class ClubAdmin(admin.ModelAdmin):
+    list_display = ("name", "league_name", "country", "verified_status", "created_at")
     list_filter = ("verified_status", "country", "league_name")
-    search_fields = ("club_name", "user__username")
+    search_fields = ("name", "user__username")
     actions = ["reset_finances"]
 
     @admin.action(description="Reset finances (reserved/committed to 0)")
@@ -48,7 +48,7 @@ class ClubFinanceAdmin(admin.ModelAdmin):
     def set_default_budgets_for_buyers(self, request, queryset):
         default_transfer = "200000000.00"
         default_wage = "5000000.00"
-        buyer_clubs = ClubProfile.objects.filter(user__groups__name="buyer").distinct()
+        buyer_clubs = Club.objects.filter(user__groups__name="buyer").distinct()
         updated = 0
         created = 0
         for club in buyer_clubs:

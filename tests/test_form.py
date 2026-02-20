@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.players.models import Player
 from apps.stats.form import compute_form_from_snapshots
-from apps.stats.models import PlayerForm, PlayerStatsSnapshot, PlayerVendorMap
+from apps.stats.models import PlayerForm, PlayerStatsSnapshot
 
 
 @pytest.mark.django_db
@@ -15,10 +15,10 @@ def test_compute_form_score_basic(seller_user):
         name="Form Player",
         age=22,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
+        vendor_id="111",
     )
-    PlayerVendorMap.objects.create(player=player, vendor_player_id=111)
 
     for i in range(5):
         PlayerStatsSnapshot.objects.create(
@@ -55,10 +55,10 @@ def test_compute_form_handles_missing_ratings(seller_user):
         name="No Rating",
         age=23,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
+        vendor_id="222",
     )
-    PlayerVendorMap.objects.create(player=player, vendor_player_id=222)
 
     for i in range(5):
         PlayerStatsSnapshot.objects.create(
@@ -89,7 +89,7 @@ def test_ui_renders_without_form(client, seller_user, buyer_user):
         name="No Form Player",
         age=21,
         position=Player.Position.GK,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = player.auctions.create(
@@ -112,14 +112,14 @@ def test_sorting_by_form(client, seller_user):
         name="Alpha",
         age=22,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     player_b = Player.objects.create(
         name="Beta",
         age=23,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     PlayerForm.objects.create(

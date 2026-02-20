@@ -7,10 +7,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.players.models import Player
 from apps.stats.management.commands.sync_player_stats import _extract_metrics
-from apps.stats.models import PlayerStatsSnapshot, PlayerVendorMap, VendorSyncState
+from apps.stats.models import PlayerStatsSnapshot, VendorSyncState
 from apps.stats.vendor.api_football_client import ApiFootballClient, ApiFootballError
 from django.conf import settings
 
@@ -88,7 +88,7 @@ class Command(BaseCommand):
             username = f"club-{_slugify(club_name)}"
             user, _ = user_model.objects.get_or_create(username=username)
             user.groups.add(seller_group)
-            ClubProfile.objects.get_or_create(user=user, defaults={"club_name": club_name})
+            Club.objects.get_or_create(user=user, defaults={"name": club_name})
 
             response = client.get_team_players(team_id=team_id, season=season, league_id=league_id)
             players = response.get("response") or []
@@ -106,23 +106,15 @@ class Command(BaseCommand):
                     mapped += 1
                     continue
 
-                player_obj, _ = Player.objects.get_or_create(
-                    name=name,
-                    created_by=user,
-                    defaults={"current_club": user.club_profile},
+                player_obj, _ = Player.objects.update_or_create(
+                    vendor_id=str(vendor_player_id),
+                    defaults={
+                        "name": name,
+                        "created_by": user,
+                        "current_club": user.club,
+                    },
                 )
-
-                try:
-                    PlayerVendorMap.objects.get_or_create(
-                        player=player_obj,
-                        defaults={
-                            "vendor": "api_sports_v3",
-                            "vendor_player_id": vendor_player_id,
-                        },
-                    )
-                    mapped += 1
-                except IntegrityError:
-                    pass
+                mapped += 1
 
                 try:
                     payload = client.get_player_stats(

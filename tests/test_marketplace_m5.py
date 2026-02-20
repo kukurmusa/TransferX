@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.auctions.models import Auction
 from apps.marketplace.models import Listing
 from apps.marketplace.services import create_listing
@@ -28,7 +28,7 @@ def test_player_free_agent_when_no_current_club():
 @pytest.mark.django_db
 def test_contract_creation_sets_player_current_club():
     user = get_user_model().objects.create_user(username="seller2", password="pass")
-    club = ClubProfile.objects.create(user=user, club_name="Club A")
+    club = Club.objects.create(user=user, name="Club A")
     player = Player.objects.create(
         name="Contracted Player",
         created_by=user,
@@ -45,8 +45,8 @@ def test_contract_creation_sets_player_current_club():
 def test_listing_create_requires_ownership_for_contracted_player():
     user_a = get_user_model().objects.create_user(username="sellerA", password="pass")
     user_b = get_user_model().objects.create_user(username="sellerB", password="pass")
-    club_a = ClubProfile.objects.create(user=user_a, club_name="Club A")
-    club_b = ClubProfile.objects.create(user=user_b, club_name="Club B")
+    club_a = Club.objects.create(user=user_a, name="Club A")
+    club_b = Club.objects.create(user=user_b, name="Club B")
     player = Player.objects.create(
         name="Listed Player",
         created_by=user_a,
@@ -74,7 +74,7 @@ def test_listing_create_requires_ownership_for_contracted_player():
 @pytest.mark.django_db
 def test_existing_auction_pages_still_render(client):
     user = get_user_model().objects.create_user(username="seller3", password="pass")
-    club = ClubProfile.objects.create(user=user, club_name="Club C")
+    club = Club.objects.create(user=user, name="Club C")
     player = Player.objects.create(
         name="Auction Player",
         created_by=user,

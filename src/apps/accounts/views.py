@@ -15,7 +15,7 @@ from .finance import get_or_create_finance_for_user
 @login_required
 def dashboard(request):
     now = timezone.now()
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     ctx = _dashboard_context(request.user, club, now)
     return render(request, "dashboard/war_room.html", ctx)
 
@@ -23,7 +23,7 @@ def dashboard(request):
 @login_required
 def dashboard_auctions_partial(request):
     now = timezone.now()
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     return render(
         request,
         "dashboard/_active_auctions.html",
@@ -248,7 +248,7 @@ def _scouting_alerts(club):
 @login_required
 def finance_summary(request):
     finance = None
-    if hasattr(request.user, "club_profile"):
+    if hasattr(request.user, "club"):
         finance = get_or_create_finance_for_user(request.user)
     return render(request, "accounts/finance.html", {"finance": finance})
 
@@ -256,7 +256,7 @@ def finance_summary(request):
 @login_required
 def my_club(request):
     finance = None
-    if hasattr(request.user, "club_profile"):
+    if hasattr(request.user, "club"):
         finance = get_or_create_finance_for_user(request.user)
 
     active_bids = (

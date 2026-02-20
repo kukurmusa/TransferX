@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.players.models import Player
 from apps.stats.models import PlayerForm, PlayerStatsSnapshot
 from .forms import OfferForm, OfferMessageForm
@@ -37,7 +37,7 @@ def listing_list(request):
 
 @login_required
 def player_market_list(request):
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     can_scout = bool(club)
     queryset = player_search_queryset(club, request.GET)
     paginator = Paginator(queryset, 25)
@@ -81,7 +81,7 @@ def player_market_list(request):
 def player_market_detail(request, pk: int):
     player = get_object_or_404(Player, pk=pk)
     listing = get_open_listing_for_player(player)
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     can_scout = bool(club)
     interest = None
     shortlists = []
@@ -130,7 +130,7 @@ def club_list(request):
 
 @login_required
 def club_detail(request, pk: int):
-    club = get_object_or_404(ClubProfile, pk=pk)
+    club = get_object_or_404(Club, pk=pk)
     q = request.GET.get("q", "").strip()
     position = request.GET.get("position", "").strip()
 
@@ -144,7 +144,7 @@ def club_detail(request, pk: int):
     squad_page = squad_paginator.get_page(request.GET.get("page"))
 
     listings = Listing.objects.filter(listed_by_club=club, status=Listing.Status.OPEN)
-    show_contact = hasattr(request.user, "club_profile")
+    show_contact = hasattr(request.user, "club")
 
     return render(
         request,
@@ -162,7 +162,7 @@ def club_detail(request, pk: int):
 
 @login_required
 def listing_hub_list(request):
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     queryset = listing_search_queryset(club, request.GET)
     paginator = Paginator(queryset, 25)
     page = paginator.get_page(request.GET.get("page"))
@@ -183,7 +183,7 @@ def listing_hub_list(request):
 @login_required
 def listing_detail(request, pk: int):
     listing = get_object_or_404(Listing, pk=pk)
-    club = getattr(request.user, "club_profile", None)
+    club = getattr(request.user, "club", None)
     if listing.visibility == Listing.Visibility.INVITE_ONLY:
         if not club:
             raise PermissionDenied("Not allowed.")

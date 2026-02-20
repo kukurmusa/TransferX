@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.marketplace.models import Listing, ListingInvite
 from apps.players.models import Player
 from apps.players.services import normalize_player_market_flags
@@ -11,11 +11,11 @@ from apps.players.services import normalize_player_market_flags
 @pytest.mark.django_db
 def test_player_directory_filters_free_agents(client):
     user = get_user_model().objects.create_user(username="viewer1", password="pass")
-    ClubProfile.objects.create(user=user, club_name="Viewer Club")
+    Club.objects.create(user=user, name="Viewer Club")
     contracted = Player.objects.create(
         name="Contracted",
         created_by=user,
-        current_club=user.club_profile,
+        current_club=user.club,
         status=Player.Status.CONTRACTED,
     )
     free_agent = Player.objects.create(
@@ -40,7 +40,7 @@ def test_player_directory_filters_free_agents(client):
 @pytest.mark.django_db
 def test_player_directory_listed_only(client):
     user = get_user_model().objects.create_user(username="viewer2", password="pass")
-    club = ClubProfile.objects.create(user=user, club_name="Viewer Club")
+    club = Club.objects.create(user=user, name="Viewer Club")
     player_a = Player.objects.create(
         name="Listed Player",
         created_by=user,
@@ -71,8 +71,8 @@ def test_player_directory_listed_only(client):
 @pytest.mark.django_db
 def test_club_contact_email_gated(client):
     viewer = get_user_model().objects.create_user(username="viewer3", password="pass")
-    club = ClubProfile.objects.create(
-        user=viewer, club_name="Target Club", contact_email="contact@test.com"
+    club = Club.objects.create(
+        user=viewer, name="Target Club", contact_email="contact@test.com"
     )
 
     response = client.get(f"/clubs/{club.id}/")
@@ -87,8 +87,8 @@ def test_club_contact_email_gated(client):
 def test_listing_visibility_invite_only_hidden(client):
     user_a = get_user_model().objects.create_user(username="clubA", password="pass")
     user_b = get_user_model().objects.create_user(username="clubB", password="pass")
-    club_a = ClubProfile.objects.create(user=user_a, club_name="Club A")
-    club_b = ClubProfile.objects.create(user=user_b, club_name="Club B")
+    club_a = Club.objects.create(user=user_a, name="Club A")
+    club_b = Club.objects.create(user=user_b, name="Club B")
     player = Player.objects.create(
         name="Invite Player",
         created_by=user_a,
@@ -115,7 +115,7 @@ def test_listing_visibility_invite_only_hidden(client):
 @pytest.mark.django_db
 def test_player_open_to_offers_badge_only_for_free_agents(client):
     user = get_user_model().objects.create_user(username="viewer4", password="pass")
-    club = ClubProfile.objects.create(user=user, club_name="Viewer Club")
+    club = Club.objects.create(user=user, name="Viewer Club")
     player = Player.objects.create(
         name="Contracted Open",
         created_by=user,

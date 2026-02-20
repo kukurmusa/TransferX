@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Count
 
-from apps.world.models import WorldClub, WorldLeague, WorldPlayer, WorldSquadMembership
+from apps.world.models import WorldLeague
 
 
 class Command(BaseCommand):
@@ -19,9 +19,6 @@ class Command(BaseCommand):
 
         targets = [
             (WorldLeague, ["vendor", "league_id", "season"]),
-            (WorldClub, ["vendor", "api_team_id", "league_id", "season"]),
-            (WorldPlayer, ["vendor", "api_player_id"]),
-            (WorldSquadMembership, ["vendor", "club_id", "player_id", "league_id", "season"]),
         ]
 
         for model, key_fields in targets:
@@ -39,10 +36,7 @@ class Command(BaseCommand):
             for group in dup_groups:
                 filters = {field: group[field] for field in key_fields}
                 qs = model.objects.filter(**filters)
-                if hasattr(model, "updated_at"):
-                    qs = qs.order_by("-updated_at", "-id")
-                else:
-                    qs = qs.order_by("-id")
+                qs = qs.order_by("-id")
                 keep = qs.first()
                 dup_ids = list(qs.exclude(id=keep.id).values_list("id", flat=True))
                 if not dup_ids:

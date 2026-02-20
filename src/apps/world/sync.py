@@ -1,8 +1,24 @@
+import re
 from typing import Any
 
-from .models import WorldClub, WorldLeague, WorldPlayer, WorldSquadMembership
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+
+from apps.accounts.models import Club
+from apps.players.models import Player
+from apps.stats.models import PlayerStats
+
+from .models import WorldLeague
 
 VENDOR = "api_sports_v3"
+
+User = get_user_model()
+
+
+def _slugify(value: str) -> str:
+    value = value.strip().lower()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-")
 
 
 def upsert_league(
@@ -21,92 +37,104 @@ def upsert_league(
 def upsert_club(
     *,
     api_team_id: int,
-    league_id: int,
-    season: int,
     name: str,
-    code: str = "",
     country: str = "",
     logo_url: str = "",
-    founded: int | None = None,
-    venue_name: str = "",
     venue_city: str = "",
-    venue_capacity: int | None = None,
-    payload: dict[str, Any] | None = None,
-) -> WorldClub:
-    defaults = {
-        "name": name,
-        "code": code,
-        "country": country,
-        "logo_url": logo_url,
-        "founded": founded,
-        "venue_name": venue_name,
-        "venue_city": venue_city,
-        "venue_capacity": venue_capacity,
-        "payload": payload or {},
-    }
-    club, _ = WorldClub.objects.update_or_create(
-        vendor=VENDOR,
-        api_team_id=api_team_id,
-        league_id=league_id,
-        season=season,
-        defaults=defaults,
+    **extra: Any,
+) -> Club:
+    vendor_id = str(api_team_id)
+    club = Club.objects.filter(vendor_id=vendor_id).first()
+    if club:
+        club.name = name
+        club.country = country
+        club.city = venue_city
+        club.crest_url = logo_url
+        club.save(update_fields=["name", "country", "city", "crest_url"])
+        return club
+
+    username = f"world-{_slugify(name)}-{vendor_id}"
+    user, _ = User.objects.get_or_create(username=username)
+    seller_group, _ = Group.objects.get_or_create(name="seller")
+    user.groups.add(seller_group)
+
+    return Club.objects.create(
+        user=user,
+        name=name,
+        vendor_id=vendor_id,
+        country=country,
+        city=venue_city,
+        crest_url=logo_url,
     )
-    return club
 
 
 def upsert_player(
     *,
     api_player_id: int,
     name: str,
-    firstname: str = "",
-    lastname: str = "",
+    club: Club | None = None,
     age: int | None = None,
     nationality: str = "",
-    height: str = "",
-    weight: str = "",
-    photo_url: str = "",
-    injured: bool | None = None,
-    payload: dict[str, Any] | None = None,
-) -> WorldPlayer:
-    defaults = {
+    position: str = "",
+    **extra: Any,
+) -> Player:
+    vendor_id = str(api_player_id)
+    defaults: dict[str, Any] = {
         "name": name,
-        "firstname": firstname,
-        "lastname": lastname,
         "age": age,
         "nationality": nationality,
-        "height": height,
-        "weight": weight,
-        "photo_url": photo_url,
-        "injured": injured,
-        "payload": payload or {},
     }
-    player, _ = WorldPlayer.objects.update_or_create(
-        vendor=VENDOR, api_player_id=api_player_id, defaults=defaults
-    )
-    return player
+    if position:
+        pos_map = {
+            "goalkeeper": "GK",
+            "defender": "DEF",
+            "midfielder": "MID",
+            "attacker": "FWD",
+        }
+        defaults["position"] = pos_map.get(position.lower(), "")
+    if club:
+        defaults["current_club"] = club
+        defaults["created_by"] = club.user
+
+    player = Player.objects.filter(vendor_id=vendor_id).first()
+    if player:
+        for key, value in defaults.items():
+            setattr(player, key, value)
+        player.save(update_fields=list(defaults.keys()))
+        return player
+
+    if "created_by" not in defaults:
+        system_user, _ = User.objects.get_or_create(username="system-sync")
+        defaults["created_by"] = system_user
+
+    return Player.objects.create(vendor_id=vendor_id, **defaults)
 
 
-def upsert_membership(
+def upsert_player_stats(
     *,
-    club: WorldClub,
-    player: WorldPlayer,
+    player: Player,
+    club: Club | None = None,
     league_id: int,
     season: int,
     position: str = "",
-    number: int | None = None,
     payload: dict[str, Any] | None = None,
-) -> WorldSquadMembership:
-    defaults = {
+    stats: dict[str, Any] | None = None,
+) -> PlayerStats:
+    stats = stats or {}
+    defaults: dict[str, Any] = {
+        "current_club": club,
         "position": position,
-        "number": number,
+        "minutes": stats.get("minutes"),
+        "goals": stats.get("goals"),
+        "assists": stats.get("assists"),
+        "avg_rating": stats.get("avg_rating"),
         "payload": payload or {},
     }
-    membership, _ = WorldSquadMembership.objects.update_or_create(
-        vendor=VENDOR,
-        club=club,
+    obj, _ = PlayerStats.objects.update_or_create(
         player=player,
+        vendor=VENDOR,
         league_id=league_id,
         season=season,
         defaults=defaults,
     )
-    return membership
+    return obj

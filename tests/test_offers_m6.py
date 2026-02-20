@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.marketplace.models import Offer
 from apps.marketplace.services import (
     accept_offer,
@@ -21,8 +21,8 @@ from apps.players.models import Player
 def test_create_and_send_offer_contracted_player_sets_to_club():
     user_seller = get_user_model().objects.create_user(username="sellerM6", password="pass")
     user_buyer = get_user_model().objects.create_user(username="buyerM6", password="pass")
-    club_seller = ClubProfile.objects.create(user=user_seller, club_name="Seller Club")
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club")
+    club_seller = Club.objects.create(user=user_seller, name="Seller Club")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club")
     player = Player.objects.create(
         name="Contracted",
         created_by=user_seller,
@@ -49,8 +49,8 @@ def test_create_and_send_offer_contracted_player_sets_to_club():
 def test_only_seller_can_accept():
     user_seller = get_user_model().objects.create_user(username="sellerM6b", password="pass")
     user_buyer = get_user_model().objects.create_user(username="buyerM6b", password="pass")
-    club_seller = ClubProfile.objects.create(user=user_seller, club_name="Seller Club B")
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club B")
+    club_seller = Club.objects.create(user=user_seller, name="Seller Club B")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club B")
     player = Player.objects.create(
         name="Contracted Two",
         created_by=user_seller,
@@ -72,8 +72,8 @@ def test_only_seller_can_accept():
 def test_counter_offer_records_event_and_updates_terms():
     user_seller = get_user_model().objects.create_user(username="sellerM6c", password="pass")
     user_buyer = get_user_model().objects.create_user(username="buyerM6c", password="pass")
-    club_seller = ClubProfile.objects.create(user=user_seller, club_name="Seller Club C")
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club C")
+    club_seller = Club.objects.create(user=user_seller, name="Seller Club C")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club C")
     player = Player.objects.create(
         name="Contracted Three",
         created_by=user_seller,
@@ -102,8 +102,8 @@ def test_counter_offer_records_event_and_updates_terms():
 def test_withdraw_offer_buyer_only():
     user_seller = get_user_model().objects.create_user(username="sellerM6d", password="pass")
     user_buyer = get_user_model().objects.create_user(username="buyerM6d", password="pass")
-    club_seller = ClubProfile.objects.create(user=user_seller, club_name="Seller Club D")
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club D")
+    club_seller = Club.objects.create(user=user_seller, name="Seller Club D")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club D")
     player = Player.objects.create(
         name="Contracted Four",
         created_by=user_seller,
@@ -125,8 +125,8 @@ def test_withdraw_offer_buyer_only():
 def test_expire_opportunistic(client):
     user_seller = get_user_model().objects.create_user(username="sellerM6e", password="pass")
     user_buyer = get_user_model().objects.create_user(username="buyerM6e", password="pass")
-    club_seller = ClubProfile.objects.create(user=user_seller, club_name="Seller Club E")
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club E")
+    club_seller = Club.objects.create(user=user_seller, name="Seller Club E")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club E")
     player = Player.objects.create(
         name="Contracted Five",
         created_by=user_seller,
@@ -153,7 +153,7 @@ def test_free_agent_offer_allowed_but_accept_blocked(client):
     user_staff = get_user_model().objects.create_user(
         username="adminM6f", password="pass", is_staff=True
     )
-    club_buyer = ClubProfile.objects.create(user=user_buyer, club_name="Buyer Club F")
+    club_buyer = Club.objects.create(user=user_buyer, name="Buyer Club F")
     player = Player.objects.create(
         name="Free Agent",
         created_by=user_buyer,

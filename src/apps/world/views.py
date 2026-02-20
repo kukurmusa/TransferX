@@ -3,16 +3,15 @@ from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from .models import WorldClub, WorldClubProfile, WorldPlayer, WorldPlayerProfile, WorldSquadMembership
+from apps.accounts.models import Club
+from apps.players.models import Player
+from apps.stats.models import PlayerStats
 
 
 def _default_league_season():
-    profile = WorldClubProfile.objects.order_by("-season").first()
-    if profile:
-        return profile.league_id, profile.season
-    club = WorldClub.objects.order_by("-season").first()
-    if club:
-        return club.league_id, club.season
+    ps = PlayerStats.objects.order_by("-season").first()
+    if ps:
+        return ps.league_id, ps.season
     return None, None
 
 
@@ -25,15 +24,19 @@ def club_list(request):
     league_id = int(league_id) if league_id else default_league
     season = int(season) if season else default_season
 
-    clubs = WorldClubProfile.objects.select_related("club")
-    if league_id:
-        clubs = clubs.filter(league_id=league_id)
-    if season:
-        clubs = clubs.filter(season=season)
+    clubs = Club.objects.filter(vendor_id__isnull=False)
     if q:
-        clubs = clubs.filter(club__name__icontains=q)
+        clubs = clubs.filter(name__icontains=q)
+    clubs = clubs.order_by("name")
 
-    clubs = clubs.order_by("club__name")
+    if league_id and season:
+        club_ids = (
+            PlayerStats.objects.filter(league_id=league_id, season=season)
+            .values_list("current_club_id", flat=True)
+            .distinct()
+        )
+        clubs = clubs.filter(id__in=club_ids)
+
     paginator = Paginator(clubs, 25)
     page = paginator.get_page(request.GET.get("page"))
 
@@ -50,50 +53,51 @@ def club_list(request):
 
 
 def club_detail(request, pk: int):
-    club = get_object_or_404(WorldClub, pk=pk)
-    league_id = request.GET.get("league_id", club.league_id)
-    season = request.GET.get("season", club.season)
+    club = get_object_or_404(Club, pk=pk)
+    league_id = request.GET.get("league_id")
+    season = request.GET.get("season")
     q = request.GET.get("q", "").strip()
     position = request.GET.get("position", "").strip()
     sort = request.GET.get("sort", "form_desc")
 
-    profile = (
-        WorldClubProfile.objects.filter(club=club, league_id=league_id, season=season)
-        .select_related("club")
-        .first()
-    )
+    default_league, default_season = _default_league_season()
+    league_id = int(league_id) if league_id else default_league
+    season = int(season) if season else default_season
 
-    memberships = WorldSquadMembership.objects.filter(
-        club=club, league_id=league_id, season=season
+    stats_qs = PlayerStats.objects.filter(
+        current_club=club,
     ).select_related("player")
+    if league_id:
+        stats_qs = stats_qs.filter(league_id=league_id)
+    if season:
+        stats_qs = stats_qs.filter(season=season)
     if q:
-        memberships = memberships.filter(player__name__icontains=q)
+        stats_qs = stats_qs.filter(player__name__icontains=q)
     if position:
-        memberships = memberships.filter(position__iexact=position)
+        stats_qs = stats_qs.filter(position__iexact=position)
 
     if sort == "name":
-        memberships = memberships.order_by("player__name")
+        stats_qs = stats_qs.order_by("player__name")
     else:
-        memberships = memberships.order_by("-player__profile__form_score", "player__name")
+        stats_qs = stats_qs.order_by("-form_score", "player__name")
 
-    paginator = Paginator(memberships, 25)
+    paginator = Paginator(stats_qs, 25)
     page = paginator.get_page(request.GET.get("page"))
 
-    stats = memberships.aggregate(avg_age=Avg("player__age"), squad_size=Count("id"))
+    agg = stats_qs.aggregate(avg_age=Avg("player__age"), squad_size=Count("id"))
 
     return render(
         request,
         "world/club_detail.html",
         {
             "club": club,
-            "profile": profile,
             "page_obj": page,
             "league_id": league_id,
             "season": season,
             "q": q,
             "position": position,
             "sort": sort,
-            "stats": stats,
+            "stats": agg,
         },
     )
 
@@ -111,36 +115,32 @@ def player_list(request):
     league_id = int(league_id) if league_id else default_league
     season = int(season) if season else default_season
 
-    players = WorldPlayerProfile.objects.select_related("player", "current_club")
+    stats_qs = PlayerStats.objects.select_related("player", "current_club")
     if league_id:
-        players = players.filter(league_id=league_id)
+        stats_qs = stats_qs.filter(league_id=league_id)
     if season:
-        players = players.filter(season=season)
+        stats_qs = stats_qs.filter(season=season)
     if q:
-        players = players.filter(player__name__icontains=q)
+        stats_qs = stats_qs.filter(player__name__icontains=q)
     if position:
-        players = players.filter(position__iexact=position)
+        stats_qs = stats_qs.filter(position__iexact=position)
     if club_id:
-        players = players.filter(current_club_id=club_id)
+        stats_qs = stats_qs.filter(current_club_id=club_id)
     if min_form:
         try:
-            players = players.filter(form_score__gte=float(min_form))
+            stats_qs = stats_qs.filter(form_score__gte=float(min_form))
         except ValueError:
             pass
 
     if sort == "name":
-        players = players.order_by("player__name")
+        stats_qs = stats_qs.order_by("player__name")
     else:
-        players = players.order_by("-form_score", "player__name")
+        stats_qs = stats_qs.order_by("-form_score", "player__name")
 
-    paginator = Paginator(players, 25)
+    paginator = Paginator(stats_qs, 25)
     page = paginator.get_page(request.GET.get("page"))
 
-    clubs = WorldClub.objects.order_by("name")
-    if league_id:
-        clubs = clubs.filter(league_id=league_id)
-    if season:
-        clubs = clubs.filter(season=season)
+    clubs = Club.objects.filter(vendor_id__isnull=False).order_by("name")
 
     return render(
         request,
@@ -160,27 +160,21 @@ def player_list(request):
 
 
 def player_detail(request, pk: int):
-    player = get_object_or_404(WorldPlayer, pk=pk)
-    profile = (
-        WorldPlayerProfile.objects.select_related("player", "current_club")
+    player = get_object_or_404(Player, pk=pk)
+    stats = (
+        PlayerStats.objects.select_related("player", "current_club")
         .filter(player=player)
         .first()
     )
-    club = profile.current_club if profile else None
-    club_profile = None
-    if club and profile:
-        club_profile = WorldClubProfile.objects.filter(
-            club=club, league_id=profile.league_id, season=profile.season
-        ).first()
+    club = stats.current_club if stats else None
 
     return render(
         request,
         "world/player_detail.html",
         {
             "player": player,
-            "profile": profile,
+            "profile": stats,
             "club": club,
-            "club_profile": club_profile,
             "offer_link": f"{reverse('marketplace:offer_new')}?player={player.id}",
         },
     )

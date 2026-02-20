@@ -1,11 +1,11 @@
 from django.db.models import Min, Q
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from apps.players.models import Player
 from .models import Listing, ListingInvite
 
 
-def player_search_queryset(actor_club: ClubProfile | None, params):
+def player_search_queryset(actor_club: Club | None, params):
     queryset = Player.objects.select_related("current_club", "form")
     if actor_club:
         queryset = queryset.exclude(visibility=Player.Visibility.PRIVATE)
@@ -72,7 +72,7 @@ def player_search_queryset(actor_club: ClubProfile | None, params):
     return queryset
 
 
-def listing_search_queryset(actor_club: ClubProfile | None, params):
+def listing_search_queryset(actor_club: Club | None, params):
     listings = Listing.objects.select_related("player", "listed_by_club").filter(
         status=Listing.Status.OPEN
     )
@@ -104,10 +104,10 @@ def listing_search_queryset(actor_club: ClubProfile | None, params):
 
 
 def club_search_queryset(params):
-    queryset = ClubProfile.objects.all()
+    queryset = Club.objects.all()
     q = params.get("q", "").strip()
     if q:
-        queryset = queryset.filter(club_name__icontains=q)
+        queryset = queryset.filter(name__icontains=q)
 
     country = params.get("country")
     if country:
@@ -121,7 +121,7 @@ def club_search_queryset(params):
     if verified:
         queryset = queryset.filter(verified_status=verified)
 
-    return queryset.order_by("club_name")
+    return queryset.order_by("name")
 
 
 def get_open_listing_for_player(player: Player):

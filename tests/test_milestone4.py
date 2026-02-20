@@ -9,7 +9,7 @@ from django.utils import timezone
 from apps.accounts.models import ClubFinance
 from apps.auctions.models import Auction, AuctionEvent, Bid
 from apps.players.models import Player
-from apps.stats.models import PlayerForm, PlayerStatsSnapshot, PlayerVendorMap
+from apps.stats.models import PlayerForm, PlayerStatsSnapshot
 
 
 @pytest.mark.django_db
@@ -18,7 +18,7 @@ def test_min_next_bid_displayed_in_list_and_detail(client, seller_user, buyer_us
         name="MinNext",
         age=24,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -44,7 +44,7 @@ def test_reserve_met_indicator_buyer_safe(client, seller_user, buyer_user):
         name="Reserve",
         age=22,
         position=Player.Position.DEF,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -84,14 +84,14 @@ def test_csv_export_seller_only(client, auction_with_bids, seller_user, buyer_us
 @pytest.mark.django_db
 @override_settings(TRANSFERX_BID_RATE="1/m")
 def test_rate_limit_on_bid_endpoint(client, seller_user, buyer_user):
-    ClubFinance.objects.filter(club=buyer_user.club_profile).update(
+    ClubFinance.objects.filter(club=buyer_user.club).update(
         transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
     )
     player = Player.objects.create(
         name="Rate",
         age=24,
         position=Player.Position.MID,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -116,7 +116,7 @@ def test_rate_limit_on_bid_endpoint(client, seller_user, buyer_user):
 
 @pytest.mark.django_db
 def test_reset_season_resets_finance_and_deletes_rows(seller_user, buyer_user):
-    finance = ClubFinance.objects.get(club=buyer_user.club_profile)
+    finance = ClubFinance.objects.get(club=buyer_user.club)
     finance.transfer_reserved = Decimal("50.00")
     finance.wage_reserved_weekly = Decimal("5.00")
     finance.transfer_committed = Decimal("25.00")
@@ -127,7 +127,7 @@ def test_reset_season_resets_finance_and_deletes_rows(seller_user, buyer_user):
         name="Reset",
         age=21,
         position=Player.Position.GK,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(
@@ -137,7 +137,8 @@ def test_reset_season_resets_finance_and_deletes_rows(seller_user, buyer_user):
     )
     Bid.objects.create(auction=auction, buyer=buyer_user, amount=Decimal("100.00"))
     AuctionEvent.objects.create(auction=auction, event_type=AuctionEvent.EventType.BID_PLACED)
-    PlayerVendorMap.objects.create(player=player, vendor_player_id=123)
+    player.vendor_id = "123"
+    player.save(update_fields=["vendor_id"])
     PlayerStatsSnapshot.objects.create(
         player=player,
         vendor="api_sports_v3",
@@ -162,7 +163,8 @@ def test_reset_season_resets_finance_and_deletes_rows(seller_user, buyer_user):
     assert AuctionEvent.objects.count() == 0
     assert PlayerStatsSnapshot.objects.count() == 0
     assert PlayerForm.objects.count() == 0
-    assert PlayerVendorMap.objects.count() == 1
+    player.refresh_from_db()
+    assert player.vendor_id == "123"
 
     finance.refresh_from_db()
     assert finance.transfer_reserved == 0
@@ -178,14 +180,14 @@ def test_reset_season_resets_finance_and_deletes_rows(seller_user, buyer_user):
     TRANSFERX_SNIPING_EXTEND_MINUTES=3,
 )
 def test_anti_sniping_extends_deadline_when_enabled(seller_user, buyer_user):
-    ClubFinance.objects.filter(club=buyer_user.club_profile).update(
+    ClubFinance.objects.filter(club=buyer_user.club).update(
         transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
     )
     player = Player.objects.create(
         name="Snipe",
         age=27,
         position=Player.Position.FWD,
-        current_club=seller_user.club_profile,
+        current_club=seller_user.club,
         created_by=seller_user,
     )
     auction = Auction.objects.create(

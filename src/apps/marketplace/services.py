@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from apps.accounts.models import ClubProfile
+from apps.accounts.models import Club
 from .models import Listing, Offer, OfferEvent, OfferMessage
 
 
@@ -51,9 +51,9 @@ def close_listing(*, listing: Listing, actor_club, reason: str = "closed") -> No
     listing.save(update_fields=["status", "updated_at"])
 
 
-def get_actor_club(user) -> ClubProfile | None:
-    if hasattr(user, "club_profile"):
-        return user.club_profile
+def get_actor_club(user) -> Club | None:
+    if hasattr(user, "club"):
+        return user.club
     return None
 
 
