@@ -9,6 +9,7 @@ from apps.accounts.models import Club
 from .models import Listing, Offer, OfferEvent, OfferMessage
 from apps.notifications.models import Notification
 from apps.notifications.utils import create_notification
+from apps.deals.models import Deal
 
 
 @transaction.atomic
@@ -281,6 +282,18 @@ def accept_offer(offer: Offer, actor_user, actor_club) -> Offer:
         event_type=OfferEvent.EventType.ACCEPTED,
         actor_user=actor_user,
         actor_club=actor_club,
+    )
+    Deal.objects.get_or_create(
+        offer=offer,
+        defaults={
+            "buyer_club": offer.from_club,
+            "seller_club": offer.to_club,
+            "player": offer.player,
+            "agreed_fee": offer.fee_amount,
+            "agreed_wage": offer.wage_weekly,
+            "status": Deal.Status.IN_PROGRESS,
+            "stage": Deal.Stage.AGREEMENT,
+        },
     )
     if offer.from_club and offer.from_club.user:
         create_notification(

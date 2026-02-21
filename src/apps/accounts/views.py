@@ -12,6 +12,7 @@ from apps.notifications.models import Notification
 from apps.players.models import Player
 from apps.scouting.models import PlayerInterest, ShortlistItem
 from apps.scouting.services import offers_expiring_soon, watched_now_available
+from .finance import get_or_create_finance_for_user
 
 
 @login_required

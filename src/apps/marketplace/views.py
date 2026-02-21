@@ -628,9 +628,12 @@ def offer_accept(request, pk: int):
         return redirect("marketplace:offer_detail", pk=pk)
     try:
         accept_offer(offer, request.user, club)
+        offer.refresh_from_db()
         messages.success(request, "Offer accepted.")
     except (ValidationError, PermissionDenied) as exc:
         messages.error(request, str(exc))
+    if hasattr(offer, "deal"):
+        return redirect("deals:detail", pk=offer.deal.id)
     return redirect("marketplace:offer_detail", pk=pk)
 
 

@@ -64,6 +64,11 @@
             {% else %}
               {% include "components/sidebar_link.html" with href="/marketplace/offers/received/" label="Inbox" icon="inbox" %}
             {% endif %}
+            {% if deal_count %}
+              {% include "components/sidebar_link.html" with href="/deals/" label="Deals" icon="tag" badge=deal_count %}
+            {% else %}
+              {% include "components/sidebar_link.html" with href="/deals/" label="Deals" icon="tag" %}
+            {% endif %}
             {% with current_path=request.path %}
               <a href="/notifications/"
                  class="group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium no-underline

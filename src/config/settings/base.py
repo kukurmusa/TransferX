@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "apps.marketplace.apps.MarketplaceConfig",
     "apps.scouting.apps.ScoutingConfig",
     "apps.notifications.apps.NotificationsConfig",
+    "apps.deals.apps.DealsConfig",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.marketplace.context_processors.offer_unread_counts",
                 "apps.notifications.views.notifications_unread_context",
+                "apps.deals.views.deal_count_context",
             ],
         },
     }
