@@ -1,0 +1,46 @@
+{% url 'notifications:go' note.id as note_url %}
+<a
+  href="{{ note_url }}"
+  class="flex items-center gap-4 rounded-2xl border {% if not note.is_read %}border-emerald-400/50{% else %}border-white/10{% endif %} bg-slate-900/70 p-4 transition hover:-translate-y-1 hover:border-white/20"
+>
+  <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-lg text-emerald-300">
+    {% if note.type == "OUTBID" %}!
+    {% elif note.type == "OFFER_RECEIVED" %}O
+    {% elif note.type == "OFFER_ACCEPTED" %}OK
+    {% elif note.type == "OFFER_REJECTED" %}X
+    {% elif note.type == "OFFER_COUNTERED" %}C
+    {% elif note.type == "OFFER_EXPIRING" %}T
+    {% elif note.type == "LISTING_NEW_OFFER" %}L
+    {% elif note.type == "AUCTION_ENDING" %}A
+    {% elif note.type == "DEAL_COMPLETED" %}D
+    {% elif note.type == "PLAYER_AVAILABLE" %}P
+    {% else %}N{% endif %}
+  </div>
+  <div class="flex-1">
+    <div class="flex items-center gap-2">
+      <div class="text-sm font-semibold text-white">{{ note.message }}</div>
+      {% if not note.is_read %}
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+      {% endif %}
+    </div>
+    <div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+      <span>{{ note.created_at|timesince }} ago</span>
+      {% if note.related_player %}
+        <span class="inline-flex items-center gap-2">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-slate-200">
+            {{ note.related_player.name|slice:":1"|upper }}
+          </span>
+          {{ note.related_player.name }}
+        </span>
+      {% endif %}
+      {% if note.related_club %}
+        <span class="inline-flex items-center gap-2">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-slate-200">
+            {{ note.related_club.name|slice:":1"|upper }}
+          </span>
+          {{ note.related_club.name }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</a>

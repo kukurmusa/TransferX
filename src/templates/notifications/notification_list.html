@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications | TransferX{% endblock %}
+
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">Notifications</h1>{% endblock %}
+{% block page_subtitle %}<p class="text-sm text-slate-400">Latest market activity and alerts.</p>{% endblock %}
+{% block page_actions %}
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">
+    {% csrf_token %}
+    {% include "components/button.html" with text="Mark all read" variant="secondary" size="sm" %}
+  </form>
+{% endblock %}
+
+{% block content %}
+  {% if grouped.today or grouped.yesterday or grouped.this_week or grouped.older %}
+    <div class="space-y-8">
+      {% if grouped.today %}
+        <div class="space-y-3">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Today</h2>
+          {% for note in grouped.today %}
+            {% include "notifications/_notification_row.html" with note=note %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if grouped.yesterday %}
+        <div class="space-y-3">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Yesterday</h2>
+          {% for note in grouped.yesterday %}
+            {% include "notifications/_notification_row.html" with note=note %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if grouped.this_week %}
+        <div class="space-y-3">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">This Week</h2>
+          {% for note in grouped.this_week %}
+            {% include "notifications/_notification_row.html" with note=note %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if grouped.older %}
+        <div class="space-y-3">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Older</h2>
+          {% for note in grouped.older %}
+            {% include "notifications/_notification_row.html" with note=note %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    {% include "components/empty_state.html" with title="No notifications" description="You are all caught up." %}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,110 @@
+{% if page_obj.object_list %}
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    {% for listing in page_obj.object_list %}
+      <div class="flex h-full flex-col rounded-2xl border border-white/10 bg-slate-900/70 p-5 transition hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_12px_45px_-24px_rgba(16,185,129,0.5)]">
+        <div class="flex items-start justify-between gap-3">
+          <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-white/10
+            {% if listing.player.position == 'GK' %}bg-amber-500/20 text-amber-200 ring-amber-400/40
+            {% elif listing.player.position == 'DEF' %}bg-blue-500/20 text-blue-200 ring-blue-400/40
+            {% elif listing.player.position == 'MID' %}bg-emerald-500/20 text-emerald-200 ring-emerald-400/40
+            {% elif listing.player.position == 'FWD' %}bg-red-500/20 text-red-200 ring-red-400/40
+            {% else %}bg-slate-800 text-slate-300{% endif %}
+          ">
+            {{ listing.player.position|default:"--" }}
+          </span>
+          <span class="rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
+            {{ listing.get_listing_type_display }}
+          </span>
+        </div>
+
+        <div class="mt-4">
+          <div class="text-lg font-semibold text-white">{{ listing.player.name }}</div>
+          <div class="text-sm text-slate-400">
+            {% if listing.listed_by_club %}{{ listing.listed_by_club.name }}{% else %}Free agent{% endif %}
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Form score</span>
+            <span class="text-slate-300">{% if listing.player.form %}{{ listing.player.form.form_score|floatformat:0 }}{% else %}-{% endif %}</span>
+          </div>
+          <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+            <div
+              class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-red-400"
+              style="width: {% if listing.player.form %}{{ listing.player.form.form_score|floatformat:0 }}{% else %}0{% endif %}%;"
+            ></div>
+          </div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3 text-xs text-slate-400">
+          <div>
+            <div class="uppercase tracking-wide text-slate-500">Asking</div>
+            <div class="mt-1 text-sm font-semibold text-slate-100">
+              {% if listing.asking_price %}GBP {{ listing.asking_price }}{% else %}Negotiable{% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="uppercase tracking-wide text-slate-500">Contract</div>
+            <div class="mt-1 text-sm font-semibold text-slate-100">
+              {% if listing.contract_end_date %}
+                {{ listing.contract_end_date|timeuntil }} remaining
+              {% elif listing.player.status == "FREE_AGENT" %}
+                Free agent
+              {% else %}
+                -
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="uppercase tracking-wide text-slate-500">Days listed</div>
+            <div class="mt-1 text-sm font-semibold text-slate-100">
+              {{ listing.created_at|timesince }} ago
+            </div>
+          </div>
+          <div>
+            <div class="uppercase tracking-wide text-slate-500">Offers</div>
+            <div class="mt-1 text-sm font-semibold text-emerald-200">
+              {{ listing.offers_count|default:0 }} received
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+          <span class="text-xs text-slate-500">Listing #{{ listing.id }}</span>
+          {% include "components/button.html" with text="View Listing" href="/listings/"|add:listing.id|add:"/" variant="secondary" size="sm" %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  {% include "components/empty_state.html" with title="No listings found" description="Try adjusting filters or clearing selections." %}
+{% endif %}
+
+{% if page_obj.paginator.num_pages > 1 %}
+  <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex items-center gap-2">
+      {% if page_obj.has_previous %}
+        <a
+          class="rounded-full border border-white/10 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-emerald-400/60 hover:text-emerald-200"
+          href="{% if base_query %}?{{ base_query }}&page={{ page_obj.previous_page_number }}{% else %}?page={{ page_obj.previous_page_number }}{% endif %}"
+          hx-get="{% if base_query %}?{{ base_query }}&page={{ page_obj.previous_page_number }}{% else %}?page={{ page_obj.previous_page_number }}{% endif %}"
+          hx-target="#listing-grid"
+          hx-push-url="true"
+          hx-swap="innerHTML"
+        >Prev</a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a
+          class="rounded-full border border-white/10 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-emerald-400/60 hover:text-emerald-200"
+          href="{% if base_query %}?{{ base_query }}&page={{ page_obj.next_page_number }}{% else %}?page={{ page_obj.next_page_number }}{% endif %}"
+          hx-get="{% if base_query %}?{{ base_query }}&page={{ page_obj.next_page_number }}{% else %}?page={{ page_obj.next_page_number }}{% endif %}"
+          hx-target="#listing-grid"
+          hx-push-url="true"
+          hx-swap="innerHTML"
+        >Next</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}

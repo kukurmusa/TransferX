@@ -1,15 +1,17 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max, Q
+from datetime import timedelta
+
+from django.db.models import F, Max, OuterRef, Q, Subquery
 from django.shortcuts import render
 from django.utils import timezone
 
 from apps.auctions.models import Auction, Bid
 from apps.auctions.services import get_best_bid_amount
-from apps.marketplace.models import Offer
+from apps.marketplace.models import Listing, Offer, OfferEvent
+from apps.notifications.models import Notification
 from apps.players.models import Player
 from apps.scouting.models import PlayerInterest, ShortlistItem
 from apps.scouting.services import offers_expiring_soon, watched_now_available
-from .finance import get_or_create_finance_for_user
 
 
 @login_required
@@ -32,58 +34,76 @@ def dashboard_auctions_partial(request):
 
 
 def _dashboard_context(user, club, now):
-    finance = None
-    budget = None
     squad_count = 0
+    squad_target = None
+    active_listings = 0
+    open_offers = 0
+    shortlisted_count = 0
+    offers_action = []
+    recent_notifications = []
 
     if club:
-        finance = get_or_create_finance_for_user(user)
         squad_count = Player.objects.filter(current_club=club).count()
-        budget = _budget_data(finance)
+        squad_target = club.squad_target
+        active_listings = Listing.objects.filter(
+            listed_by_club=club,
+            status=Listing.Status.OPEN,
+            listing_type__in=[Listing.ListingType.TRANSFER, Listing.ListingType.LOAN],
+        ).count()
+        open_offers = Offer.objects.filter(
+            Q(from_club=club) | Q(to_club=club),
+            status__in=[Offer.Status.SENT, Offer.Status.COUNTERED],
+        ).count()
+        shortlisted_count = ShortlistItem.objects.filter(shortlist__club=club).count()
+        offers_action = _offers_requiring_action(club)[:5]
+        recent_notifications = list(
+            Notification.objects.select_related("related_player", "related_club")
+            .filter(recipient=user, is_read=False)
+            .order_by("-created_at")[:5]
+        )
 
     return {
         "club": club,
-        "finance": finance,
-        "budget": budget,
         "squad_count": squad_count,
+        "squad_target": squad_target,
+        "active_listings": active_listings,
+        "open_offers": open_offers,
+        "shortlisted_count": shortlisted_count,
         "auction_rows": _auction_rows(user, club, now),
-        "offer_rows": _offer_rows(club),
+        "offer_rows": offers_action,
         "scouting_alerts": _scouting_alerts(club),
+        "recent_notifications": recent_notifications,
     }
 
 
-def _budget_data(finance):
-    data = {}
-
-    t_total = finance.transfer_budget_total
-    if t_total and t_total > 0:
-        t_committed = finance.transfer_committed
-        t_reserved = finance.transfer_reserved
-        data["transfer"] = {
-            "total": t_total,
-            "committed": t_committed,
-            "reserved": t_reserved,
-            "used": t_committed + t_reserved,
-            "remaining": finance.transfer_remaining,
-            "committed_pct": min(int(t_committed * 100 / t_total), 100),
-            "reserved_pct": min(int(t_reserved * 100 / t_total), 100),
-        }
-
-    w_total = finance.wage_budget_total_weekly
-    if w_total and w_total > 0:
-        w_committed = finance.wage_committed_weekly
-        w_reserved = finance.wage_reserved_weekly
-        data["wage"] = {
-            "total": w_total,
-            "committed": w_committed,
-            "reserved": w_reserved,
-            "used": w_committed + w_reserved,
-            "remaining": finance.wage_remaining_weekly,
-            "committed_pct": min(int(w_committed * 100 / w_total), 100),
-            "reserved_pct": min(int(w_reserved * 100 / w_total), 100),
-        }
-
-    return data or None
+def _offers_requiring_action(club):
+    last_event = OfferEvent.objects.filter(offer_id=OuterRef("pk")).order_by(
+        "-created_at"
+    )
+    offers = (
+        Offer.objects.select_related("player", "from_club", "to_club")
+        .filter(
+            Q(from_club=club) | Q(to_club=club),
+            status__in=[Offer.Status.SENT, Offer.Status.COUNTERED],
+        )
+        .annotate(last_actor_club_id=Subquery(last_event.values("actor_club_id")[:1]))
+        .filter(~Q(last_actor_club_id=club.id))
+        .order_by("expires_at", "-last_action_at")
+    )
+    rows = []
+    for offer in offers:
+        counterparty = offer.from_club if offer.to_club_id == club.id else offer.to_club
+        rows.append(
+            {
+                "offer": offer,
+                "player": offer.player,
+                "counterparty": counterparty,
+                "expires_at_iso": (
+                    offer.expires_at.isoformat() if offer.expires_at else None
+                ),
+            }
+        )
+    return rows
 
 
 def _auction_rows(user, club, now):
@@ -211,10 +231,73 @@ def _scouting_alerts(club):
         return []
 
     alerts = []
+    now = timezone.now()
+    since = now - timedelta(hours=48)
+    player_ids = list(
+        ShortlistItem.objects.filter(shortlist__club=club).values_list(
+            "player_id", flat=True
+        )
+    )
+    if not player_ids:
+        return alerts
 
-    for offer in offers_expiring_soon(club).select_related(
+    used_players = set()
+
+    listings_new = (
+        Listing.objects.select_related("player", "player__current_club")
+        .filter(
+            player_id__in=player_ids,
+            status=Listing.Status.OPEN,
+            created_at__gte=since,
+        )
+        .order_by("-created_at")
+    )
+    for listing in listings_new:
+        if listing.player_id in used_players:
+            continue
+        used_players.add(listing.player_id)
+        alerts.append(
+            {
+                "player": listing.player,
+                "alert_type": "listed",
+                "alert_text": "Now listed",
+                "detail_iso": None,
+            }
+        )
+        if len(alerts) >= 6:
+            return alerts
+
+    listings_changed = (
+        Listing.objects.select_related("player", "player__current_club")
+        .filter(
+            player_id__in=player_ids,
+            status=Listing.Status.OPEN,
+            updated_at__gte=since,
+        )
+        .exclude(updated_at=F("created_at"))
+        .order_by("-updated_at")
+    )
+    for listing in listings_changed:
+        if listing.player_id in used_players:
+            continue
+        used_players.add(listing.player_id)
+        alerts.append(
+            {
+                "player": listing.player,
+                "alert_type": "price",
+                "alert_text": "Price dropped",
+                "detail_iso": None,
+            }
+        )
+        if len(alerts) >= 6:
+            return alerts
+
+    for offer in offers_expiring_soon(club, within_hours=48).select_related(
         "player", "player__current_club"
-    )[:5]:
+    ).filter(player_id__in=player_ids)[:5]:
+        if offer.player_id in used_players:
+            continue
+        used_players.add(offer.player_id)
         alerts.append(
             {
                 "player": offer.player,
@@ -226,21 +309,25 @@ def _scouting_alerts(club):
             }
         )
 
-    for item in watched_now_available(club)[:5]:
-        if item["has_open_listing"]:
-            text = "Now listed"
-        elif item["is_free_agent"]:
-            text = "Free agent"
-        else:
-            text = "Open to offers"
+    free_agents = (
+        Player.objects.select_related("current_club")
+        .filter(id__in=player_ids, current_club__isnull=True, updated_at__gte=since)
+        .order_by("-updated_at")
+    )
+    for player in free_agents:
+        if player.id in used_players:
+            continue
+        used_players.add(player.id)
         alerts.append(
             {
-                "player": item["player"],
+                "player": player,
                 "alert_type": "available",
-                "alert_text": text,
+                "alert_text": "Free agent",
                 "detail_iso": None,
             }
         )
+        if len(alerts) >= 6:
+            break
 
     return alerts
 

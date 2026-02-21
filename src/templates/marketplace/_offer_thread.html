@@ -1,0 +1,123 @@
+<div class="space-y-6">
+  <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="text-lg font-semibold text-white">Deal status</div>
+        <div class="text-sm text-slate-400">
+          From {{ offer.from_club.name }} to {% if offer.to_club %}{{ offer.to_club.name }}{% else %}Free agent{% endif %}
+        </div>
+      </div>
+      <span class="rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
+        {{ offer.get_status_display }}
+      </span>
+    </div>
+
+    <div class="mt-6 grid gap-3 sm:grid-cols-5">
+      {% for label in step_labels %}
+        {% with idx=forloop.counter0 %}
+          <div class="flex items-center gap-3">
+            <div class="flex h-7 w-7 items-center justify-center rounded-full border
+              {% if idx < current_step %}border-emerald-400/60 bg-emerald-500/20 text-emerald-200
+              {% elif idx == current_step %}border-emerald-400 bg-emerald-500/20 text-emerald-200
+              {% else %}border-white/10 bg-slate-800 text-slate-400{% endif %}
+            ">
+              {% if idx < current_step %}
+                <span class="text-xs">OK</span>
+              {% else %}
+                <span class="text-xs">{{ forloop.counter }}</span>
+              {% endif %}
+            </div>
+            <div class="text-xs font-semibold uppercase tracking-[0.2em]
+              {% if idx <= current_step %}text-emerald-200{% else %}text-slate-500{% endif %}
+            ">{{ label }}</div>
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-white">Negotiation timeline</h2>
+      <div class="text-xs text-slate-500">Latest at bottom</div>
+    </div>
+    <div class="mt-6 space-y-4">
+      {% for item in events %}
+        <div class="flex {% if item.direction == 'sent' %}justify-end{% else %}justify-start{% endif %}">
+          <div class="max-w-[80%] rounded-2xl px-4 py-3
+            {% if item.direction == 'sent' %}bg-emerald-500/10 ring-1 ring-emerald-500/20 rounded-br-none
+            {% else %}bg-slate-800 rounded-bl-none{% endif %}
+          ">
+            <div class="text-xs font-semibold {% if item.direction == 'sent' %}text-emerald-300{% else %}text-slate-300{% endif %}">
+              {{ item.actor_name }}
+              <span class="ml-2 font-normal text-slate-500">{{ item.timestamp|date:"M d, H:i" }}</span>
+            </div>
+            <div class="mt-2 text-sm text-slate-200">
+              {{ item.event.get_event_type_display }}
+            </div>
+            {% if item.terms %}
+              <div class="mt-2 text-xs text-slate-300">
+                Fee GBP {{ item.terms.fee_amount|default:"-" }} - Wage GBP {{ item.terms.wage_weekly|default:"-" }}
+                {% if item.terms.contract_years %}
+                  • {{ item.terms.contract_years }} yr
+                {% endif %}
+              </div>
+            {% endif %}
+            {% if item.message %}
+              <div class="mt-2 text-sm text-slate-300">“{{ item.message }}”</div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="text-sm text-slate-500">No negotiation events yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+    {% if your_turn %}
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="text-sm text-slate-400">Your move — respond to keep the deal moving.</div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% if club.id == offer.to_club_id %}
+            <form method="post" action="{% url 'marketplace:offer_accept' offer.id %}">
+              {% csrf_token %}
+              {% include "components/button.html" with text="Accept" variant="primary" size="sm" %}
+            </form>
+          {% endif %}
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200"
+            hx-get="?partial=counter_form"
+            hx-target="#counter-panel"
+            hx-swap="innerHTML"
+          >
+            Counter
+          </button>
+          {% if club.id == offer.to_club_id %}
+            <form method="post" action="{% url 'marketplace:offer_reject' offer.id %}">
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 hover:border-red-400 hover:text-red-100"
+              >
+                Reject
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      <div id="counter-panel" class="mt-4"></div>
+    {% elif awaiting_label %}
+      <div class="flex items-center gap-3 text-sm text-slate-400">
+        <span class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+        </span>
+        Awaiting response from {{ awaiting_label }}
+      </div>
+    {% else %}
+      <div class="text-sm text-slate-500">No actions available.</div>
+    {% endif %}
+  </div>
+</div>

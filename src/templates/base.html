@@ -59,7 +59,28 @@
           <p class="sidebar-label mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">My Deals</p>
           <div class="space-y-0.5">
             {% include "components/sidebar_link.html" with href="/auctions/" label="Auctions" icon="gavel" %}
-            {% include "components/sidebar_link.html" with href="/marketplace/offers/received/" label="Inbox" icon="inbox" %}
+            {% if offer_unread_count %}
+              {% include "components/sidebar_link.html" with href="/marketplace/offers/received/" label="Inbox" icon="inbox" badge=offer_unread_count %}
+            {% else %}
+              {% include "components/sidebar_link.html" with href="/marketplace/offers/received/" label="Inbox" icon="inbox" %}
+            {% endif %}
+            {% with current_path=request.path %}
+              <a href="/notifications/"
+                 class="group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium no-underline
+                   {% if current_path == '/notifications/' %}text-emerald-400 bg-emerald-500/10 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-0.5 before:rounded-full before:bg-emerald-500
+                   {% else %}text-slate-400 hover:text-white hover:bg-white/5{% endif %}">
+                {% include "components/_sidebar_icon.html" with icon="bell" %}
+                <span class="sidebar-label whitespace-nowrap">Notifications</span>
+                <span
+                  id="notification-count"
+                  class="sidebar-label ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-200 {% if notifications_unread_count == 0 %}hidden{% endif %}"
+                  hx-get="/notifications/count/"
+                  hx-trigger="load, every 60s"
+                  hx-swap="innerHTML"
+                  hx-on="htmx:afterSwap: this.classList.toggle('hidden', this.textContent.trim() === '0');"
+                >{{ notifications_unread_count }}</span>
+              </a>
+            {% endwith %}
             {% include "components/sidebar_link.html" with href="/marketplace/offers/sent/" label="Sent Offers" icon="send" %}
           </div>
         </div>

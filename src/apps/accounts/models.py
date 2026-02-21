@@ -13,6 +13,7 @@ class Club(models.Model):
     crest_url = models.URLField(blank=True, default="")
     website = models.URLField(blank=True, default="")
     contact_email = models.EmailField(blank=True, default="")
+    squad_target = models.PositiveIntegerField(null=True, blank=True)
     verified_status = models.CharField(
         max_length=20,
         choices=[

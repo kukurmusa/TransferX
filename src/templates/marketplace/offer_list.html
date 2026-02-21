@@ -17,38 +17,97 @@
   </div>
 
   {% if page_obj.object_list %}
-    <div class="space-y-4">
-      {% for offer in page_obj.object_list %}
-        {% url 'marketplace:offer_detail' offer.id as offer_url %}
-        <div class="rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08] transition-all duration-200 hover:ring-white/[0.15]">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="text-lg font-semibold text-white">{{ offer.player.name }}</div>
-              <div class="text-sm text-slate-400">
-                {% if offer.player.current_club %}
-                  Current club: {{ offer.player.current_club.club_name }}
-                {% else %}
-                  Free agent
+    <div class="space-y-8">
+      <div class="space-y-4">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Needs your response</h2>
+        {% for card in grouped_offers.needs_response %}
+          {% url 'marketplace:offer_detail' card.offer.id as offer_url %}
+          <a href="{{ offer_url }}" class="block rounded-2xl border {% if card.unread %}border-emerald-400/60{% else %}border-white/10{% endif %} bg-slate-900/70 p-5 transition hover:-translate-y-1 hover:border-white/20">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div class="text-lg font-semibold text-white">{{ card.offer.player.name }}</div>
+                <div class="text-sm text-slate-400">
+                  {% if card.counterparty %}{{ card.counterparty.name }}{% else %}Free agent{% endif %}
+                </div>
+                <div class="mt-1 text-xs text-slate-500">
+                  Fee GBP {{ card.latest_fee|default:"-" }} - Wage GBP {{ card.latest_wage|default:"-" }}
+                </div>
+              </div>
+              <div class="text-right text-xs text-slate-500">
+                <div>Last activity {{ card.last_action_at|timesince }} ago</div>
+                {% if card.expires_at %}
+                  <div class="mt-1 text-amber-200">Expires in {{ card.expires_at|timeuntil }}</div>
                 {% endif %}
               </div>
-              <div class="mt-1 text-xs text-slate-500">
-                From {{ offer.from_club.club_name }} to {% if offer.to_club %}{{ offer.to_club.club_name }}{% else %}Free agent{% endif %}
+            </div>
+            <div class="mt-4 border-t border-white/10 pt-4 text-sm text-slate-400">
+              {% if card.last_message %}"{{ card.last_message.body|truncatechars:120 }}"{% else %}No messages yet.{% endif %}
+            </div>
+          </a>
+        {% empty %}
+          <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-sm text-slate-400">No offers need your response.</div>
+        {% endfor %}
+      </div>
+
+      <div class="space-y-4">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Awaiting reply</h2>
+        {% for card in grouped_offers.awaiting_reply %}
+          {% url 'marketplace:offer_detail' card.offer.id as offer_url %}
+          <a href="{{ offer_url }}" class="block rounded-2xl border border-white/10 bg-slate-900/70 p-5 transition hover:-translate-y-1 hover:border-white/20">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div class="text-lg font-semibold text-white">{{ card.offer.player.name }}</div>
+                <div class="text-sm text-slate-400">
+                  {% if card.counterparty %}{{ card.counterparty.name }}{% else %}Free agent{% endif %}
+                </div>
+                <div class="mt-1 text-xs text-slate-500">
+                  Fee GBP {{ card.latest_fee|default:"-" }} - Wage GBP {{ card.latest_wage|default:"-" }}
+                </div>
+              </div>
+              <div class="text-right text-xs text-slate-500">
+                <div>Last activity {{ card.last_action_at|timesince }} ago</div>
+                {% if card.expires_at %}
+                  <div class="mt-1 text-amber-200">Expires in {{ card.expires_at|timeuntil }}</div>
+                {% endif %}
               </div>
             </div>
-            <div class="text-right">
-              <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Fee / Wage</div>
-              <div class="mt-1 text-sm font-semibold text-white">GBP {{ offer.fee_amount|default:"-" }} / GBP {{ offer.wage_weekly|default:"-" }}</div>
-              <div class="mt-1.5">
-                {% include "components/badge.html" with text=offer.get_status_display variant="neutral" size="sm" %}
+            <div class="mt-4 border-t border-white/10 pt-4 text-sm text-slate-400">
+              {% if card.last_message %}"{{ card.last_message.body|truncatechars:120 }}"{% else %}No messages yet.{% endif %}
+            </div>
+          </a>
+        {% empty %}
+          <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-sm text-slate-400">No offers awaiting reply.</div>
+        {% endfor %}
+      </div>
+
+      <div class="space-y-4">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Closed</h2>
+        {% for card in grouped_offers.closed %}
+          {% url 'marketplace:offer_detail' card.offer.id as offer_url %}
+          <a href="{{ offer_url }}" class="block rounded-2xl border border-white/10 bg-slate-900/70 p-5 transition hover:-translate-y-1 hover:border-white/20">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div class="text-lg font-semibold text-white">{{ card.offer.player.name }}</div>
+                <div class="text-sm text-slate-400">
+                  {% if card.counterparty %}{{ card.counterparty.name }}{% else %}Free agent{% endif %}
+                </div>
+                <div class="mt-1 text-xs text-slate-500">
+                  Fee GBP {{ card.latest_fee|default:"-" }} - Wage GBP {{ card.latest_wage|default:"-" }}
+                </div>
+              </div>
+              <div class="text-right text-xs text-slate-500">
+                <div>Status {{ card.offer.get_status_display }}</div>
+                <div class="mt-1">Last activity {{ card.last_action_at|timesince }} ago</div>
               </div>
             </div>
-          </div>
-          <div class="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-4 text-sm text-slate-500">
-            <span>{% if offer.expires_at %}Expires {{ offer.expires_at|date:"M d, H:i" }}{% else %}No expiry{% endif %}</span>
-            {% include "components/button.html" with text="View" href=offer_url variant="secondary" size="sm" %}
-          </div>
-        </div>
-      {% endfor %}
+            <div class="mt-4 border-t border-white/10 pt-4 text-sm text-slate-400">
+              {% if card.last_message %}"{{ card.last_message.body|truncatechars:120 }}"{% else %}No messages yet.{% endif %}
+            </div>
+          </a>
+        {% empty %}
+          <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-sm text-slate-400">No closed offers.</div>
+        {% endfor %}
+      </div>
     </div>
   {% else %}
     {% include "components/empty_state.html" with title="No offers" description="Your inbox is empty." %}

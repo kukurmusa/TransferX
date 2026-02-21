@@ -7,6 +7,8 @@ from django.utils import timezone
 
 from apps.accounts.models import Club
 from .models import Listing, Offer, OfferEvent, OfferMessage
+from apps.notifications.models import Notification
+from apps.notifications.utils import create_notification
 
 
 @transaction.atomic
@@ -138,7 +140,36 @@ def send_offer(offer: Offer, actor_user, actor_club) -> Offer:
         event_type=OfferEvent.EventType.SENT,
         actor_user=actor_user,
         actor_club=actor_club,
+        payload={
+            "terms": {
+                "fee_amount": str(offer.fee_amount) if offer.fee_amount is not None else None,
+                "wage_weekly": str(offer.wage_weekly) if offer.wage_weekly is not None else None,
+                "contract_years": offer.contract_years,
+                "contract_end_date": offer.contract_end_date.isoformat()
+                if offer.contract_end_date
+                else None,
+            }
+        },
     )
+    if offer.to_club and offer.to_club.user:
+        if offer.listing_id:
+            create_notification(
+                recipient=offer.to_club.user,
+                type=Notification.Type.LISTING_NEW_OFFER,
+                message=f"New offer on listing for {offer.player.name}.",
+                link=f"/marketplace/offers/{offer.id}/",
+                related_player=offer.player,
+                related_club=offer.to_club,
+            )
+        else:
+            create_notification(
+                recipient=offer.to_club.user,
+                type=Notification.Type.OFFER_RECEIVED,
+                message=f"Offer received for {offer.player.name}.",
+                link=f"/marketplace/offers/{offer.id}/",
+                related_player=offer.player,
+                related_club=offer.to_club,
+            )
     return offer
 
 
@@ -206,8 +237,29 @@ def counter_offer(
         event_type=OfferEvent.EventType.COUNTERED,
         actor_user=actor_user,
         actor_club=actor_club,
-        payload={"previous_terms": previous, "changed_fields": changed_fields},
+        payload={
+            "previous_terms": previous,
+            "changed_fields": changed_fields,
+            "terms": {
+                "fee_amount": str(offer.fee_amount) if offer.fee_amount is not None else None,
+                "wage_weekly": str(offer.wage_weekly) if offer.wage_weekly is not None else None,
+                "contract_years": offer.contract_years,
+                "contract_end_date": offer.contract_end_date.isoformat()
+                if offer.contract_end_date
+                else None,
+            },
+        },
     )
+    counterparty = offer.to_club if actor_club.id == offer.from_club_id else offer.from_club
+    if counterparty and counterparty.user:
+        create_notification(
+            recipient=counterparty.user,
+            type=Notification.Type.OFFER_COUNTERED,
+            message=f"Counter offer received for {offer.player.name}.",
+            link=f"/marketplace/offers/{offer.id}/",
+            related_player=offer.player,
+            related_club=counterparty,
+        )
     return offer
 
 
@@ -230,6 +282,15 @@ def accept_offer(offer: Offer, actor_user, actor_club) -> Offer:
         actor_user=actor_user,
         actor_club=actor_club,
     )
+    if offer.from_club and offer.from_club.user:
+        create_notification(
+            recipient=offer.from_club.user,
+            type=Notification.Type.OFFER_ACCEPTED,
+            message=f"Offer accepted for {offer.player.name}.",
+            link=f"/marketplace/offers/{offer.id}/",
+            related_player=offer.player,
+            related_club=offer.from_club,
+        )
     return offer
 
 
@@ -250,6 +311,15 @@ def reject_offer(offer: Offer, actor_user, actor_club, reason: str = "") -> Offe
         actor_club=actor_club,
         payload={"reason": reason},
     )
+    if offer.from_club and offer.from_club.user:
+        create_notification(
+            recipient=offer.from_club.user,
+            type=Notification.Type.OFFER_REJECTED,
+            message=f"Offer rejected for {offer.player.name}.",
+            link=f"/marketplace/offers/{offer.id}/",
+            related_player=offer.player,
+            related_club=offer.from_club,
+        )
     return offer
 
 

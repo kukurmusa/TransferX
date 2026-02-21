@@ -9,6 +9,8 @@ from django.utils import timezone
 from apps.accounts.finance import commit, release, reserve
 from apps.accounts.models import ClubFinance
 from .models import Auction, AuctionEvent, Bid
+from apps.notifications.models import Notification
+from apps.notifications.utils import create_notification
 
 
 def get_best_bid_amount(auction: Auction) -> Decimal | None:
@@ -125,6 +127,14 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
     if not finance:
         finance = ClubFinance.objects.create(club=buyer.club)
 
+    best_other = (
+        Bid.objects.select_for_update()
+        .filter(auction=auction, status=Bid.Status.ACTIVE)
+        .exclude(buyer=buyer)
+        .order_by("-amount", "created_at")
+        .first()
+    )
+
     existing = (
         Bid.objects.select_for_update()
         .filter(auction=auction, buyer=buyer, status=Bid.Status.ACTIVE)
@@ -169,6 +179,14 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
             },
         )
         _maybe_extend_deadline(auction, now)
+        if best_other and amount > best_other.amount:
+            create_notification(
+                recipient=best_other.buyer,
+                type=Notification.Type.OUTBID,
+                message=f"You have been outbid for {auction.player.name}.",
+                link=f"/auctions/{auction.id}/",
+                related_player=auction.player,
+            )
         return existing
 
     validate_budget_for_bid(finance, amount, wage_offer_weekly)
@@ -190,6 +208,14 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
         payload={"amount": str(amount), "type": "new"},
     )
     _maybe_extend_deadline(auction, now)
+    if best_other and amount > best_other.amount:
+        create_notification(
+            recipient=best_other.buyer,
+            type=Notification.Type.OUTBID,
+            message=f"You have been outbid for {auction.player.name}.",
+            link=f"/auctions/{auction.id}/",
+            related_player=auction.player,
+        )
     return bid
 
 

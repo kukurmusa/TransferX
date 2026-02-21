@@ -1,132 +1,12 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block title %}War Room | TransferX{% endblock %}
+{% block title %}Dashboard | TransferX{% endblock %}
 
 {% block page_title %}
   <h1 class="text-2xl font-semibold text-white">
-    {% if club %}{{ club.club_name }}{% else %}War Room{% endif %}
+    {% if club %}{{ club.name }}{% else %}Dashboard{% endif %}
   </h1>
-{% endblock %}
-{% block page_subtitle %}
-  <p class="text-sm text-slate-400">
-    {% if club %}
-      Manager: {{ user.get_full_name|default:user.username }}
-      &middot; Squad: {{ squad_count }} player{{ squad_count|pluralize }}
-    {% else %}
-      Set up your club profile to unlock the full dashboard.
-    {% endif %}
-  </p>
-{% endblock %}
-{% block page_actions %}
-  {% if club %}
-    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
-      {% if club.verified_status == 'VERIFIED' %}bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30
-      {% elif club.verified_status == 'PENDING' %}bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30
-      {% else %}bg-slate-500/15 text-slate-400 ring-1 ring-slate-500/30{% endif %}">
-      {{ club.get_verified_status_display }}
-    </span>
-  {% endif %}
-{% endblock %}
-
-{% block content %}
-  {# ── Budget Bars ── #}
-  {% if budget %}
-  <div class="grid gap-4 sm:grid-cols-2">
-    {% if budget.transfer %}
-    <div class="rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08]">
-      <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-white">Transfer Budget</h3>
-        <span class="text-xs font-medium text-slate-500">
-          &pound;{{ budget.transfer.used|floatformat:0|intcomma }}
-          / &pound;{{ budget.transfer.total|floatformat:0|intcomma }}
-        </span>
-      </div>
-      <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
-        <div class="flex h-full">
-          <div class="bg-emerald-500 transition-all duration-500" style="width: {{ budget.transfer.committed_pct }}%"></div>
-          <div class="bg-amber-400 transition-all duration-500" style="width: {{ budget.transfer.reserved_pct }}%"></div>
-        </div>
-      </div>
-      <div class="mt-2 flex gap-4 text-xs text-slate-500">
-        <span class="flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-          Committed &pound;{{ budget.transfer.committed|floatformat:0|intcomma }}
-        </span>
-        <span class="flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-amber-400"></span>
-          Reserved &pound;{{ budget.transfer.reserved|floatformat:0|intcomma }}
-        </span>
-      </div>
-    </div>
-    {% endif %}
-
-    {% if budget.wage %}
-    <div class="rounded-xl bg-slate-900 p-5 ring-1 ring-white/[0.08]">
-      <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-white">
-          Wage Budget <span class="font-normal text-slate-500">/ week</span>
-        </h3>
-        <span class="text-xs font-medium text-slate-500">
-          &pound;{{ budget.wage.used|floatformat:0|intcomma }}
-          / &pound;{{ budget.wage.total|floatformat:0|intcomma }}
-        </span>
-      </div>
-      <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800">
-        <div class="flex h-full">
-          <div class="bg-emerald-500 transition-all duration-500" style="width: {{ budget.wage.committed_pct }}%"></div>
-          <div class="bg-amber-400 transition-all duration-500" style="width: {{ budget.wage.reserved_pct }}%"></div>
-        </div>
-      </div>
-      <div class="mt-2 flex gap-4 text-xs text-slate-500">
-        <span class="flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-          Committed &pound;{{ budget.wage.committed|floatformat:0|intcomma }}pw
-        </span>
-        <span class="flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-amber-400"></span>
-          Reserved &pound;{{ budget.wage.reserved|floatformat:0|intcomma }}pw
-        </span>
-      </div>
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
-
-  {# ── Main Panels ── #}
-  <div class="mt-6 grid gap-4 lg:grid-cols-2">
-    {# Active Auctions #}
-    <div class="rounded-xl bg-slate-900 ring-1 ring-white/[0.08]">
-      <div class="flex items-center justify-between border-b border-white/[0.05] px-5 py-4">
-        <h3 class="text-sm font-semibold text-white">Active Auctions</h3>
-        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500" title="Live — refreshes every 15s"></span>
-      </div>
-      <div id="auctions-panel"
-           hx-get="{% url 'dashboard_auctions_partial' %}"
-           hx-trigger="every 15s"
-           hx-swap="innerHTML">
-        {% include "dashboard/_active_auctions.html" %}
-      </div>
-    </div>
-
-    {# Offers Inbox #}
-    <div class="rounded-xl bg-slate-900 ring-1 ring-white/[0.08]">
-      <div class="flex items-center justify-between border-b border-white/[0.05] px-5 py-4">
-        <h3 class="text-sm font-semibold text-white">Offers Inbox</h3>
-        <a href="{% url 'marketplace:offer_received' %}" class="text-xs font-medium text-emerald-400 no-underline hover:text-emerald-300">View all</a>
-      </div>
-      {% include "dashboard/_offers_inbox.html" %}
-    </div>
-  </div>
-
-  {# ── Scouting Alerts ── #}
-  <div class="mt-6 rounded-xl bg-slate-900 ring-1 ring-white/[0.08]">
-    <div class="flex items-center justify-between border-b border-white/[0.05] px-5 py-4">
-      <h3 class="text-sm font-semibold text-white">Scouting Alerts</h3>
-      <a href="{% url 'scouting:targets_dashboard' %}" class="text-xs font-medium text-emerald-400 no-underline hover:text-emerald-300">View all</a>
-    </div>
-    {% include "dashboard/_scouting_alerts.html" %}
-  </div>
 {% endblock %}
 
 {% block scripts %}
@@ -138,7 +18,9 @@
       var diff = deadline - now;
       if (diff <= 0) {
         el.textContent = 'Ended';
-        el.className = el.className.replace('text-slate-500', 'text-red-400');
+        if (el.className.indexOf('text-red-400') === -1) {
+          el.className = el.className.replace('text-slate-500', 'text-red-400');
+        }
         return;
       }
       var d = Math.floor(diff / 86400000);
@@ -156,4 +38,104 @@
     updateCountdowns();
   });
 </script>
+{% endblock %}
+{% block page_subtitle %}
+  <p class="text-sm text-slate-400">
+    {% if club %}
+      Manager: {{ user.get_full_name|default:user.username }}
+    {% else %}
+      Set up your club profile to unlock the full dashboard.
+    {% endif %}
+  </p>
+{% endblock %}
+{% block page_actions %}
+  {% if club %}
+    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+      {% if club.verified_status == 'VERIFIED' %}bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30
+      {% elif club.verified_status == 'PENDING' %}bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30
+      {% else %}bg-slate-500/15 text-slate-400 ring-1 ring-slate-500/30{% endif %}">
+      {{ club.get_verified_status_display }}
+    </span>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+      <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Squad size</div>
+      <div class="mt-3 text-2xl font-semibold text-white">
+        {{ squad_count }}
+        {% if squad_target %}<span class="text-sm font-normal text-slate-400">/ {{ squad_target }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+      <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Active listings</div>
+      <div class="mt-3 text-2xl font-semibold text-white">{{ active_listings }}</div>
+    </div>
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+      <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Open offers</div>
+      <div class="mt-3 text-2xl font-semibold text-white">{{ open_offers }}</div>
+    </div>
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+      <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Shortlisted players</div>
+      <div class="mt-3 text-2xl font-semibold text-white">{{ shortlisted_count }}</div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[3fr_2fr]">
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70">
+      <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <h3 class="text-sm font-semibold text-white">Active Auctions</h3>
+        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500" title="Live refresh"></span>
+      </div>
+      <div id="auctions-panel"
+           hx-get="/dashboard/partials/auctions/"
+           hx-trigger="every 15s"
+           hx-swap="innerHTML">
+        {% include "dashboard/_active_auctions.html" %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70">
+      <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <h3 class="text-sm font-semibold text-white">Offers requiring action</h3>
+        <a href="{% url 'marketplace:offer_received' %}" class="text-xs font-medium text-emerald-400 no-underline hover:text-emerald-300">View all</a>
+      </div>
+      {% include "dashboard/_offers_inbox.html" %}
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70">
+      <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <h3 class="text-sm font-semibold text-white">Scouting alerts</h3>
+        <a href="{% url 'scouting:targets_dashboard' %}" class="text-xs font-medium text-emerald-400 no-underline hover:text-emerald-300">View all</a>
+      </div>
+      {% include "dashboard/_scouting_alerts.html" %}
+    </div>
+
+    <div class="rounded-2xl border border-white/10 bg-slate-900/70">
+      <div class="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <h3 class="text-sm font-semibold text-white">Recent notifications</h3>
+        <a href="/notifications/" class="text-xs font-medium text-emerald-400 no-underline hover:text-emerald-300">View all</a>
+      </div>
+      <div class="divide-y divide-white/10">
+        {% for note in recent_notifications %}
+          <a href="/notifications/{{ note.id }}/go/" class="flex items-center justify-between gap-3 px-5 py-4 text-sm text-slate-300 no-underline hover:bg-white/5">
+            <div>
+              <div class="font-medium text-white">{{ note.message }}</div>
+              <div class="mt-1 text-xs text-slate-500">{{ note.created_at|timesince }} ago</div>
+            </div>
+            {% if not note.is_read %}
+              <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+            {% endif %}
+          </a>
+        {% empty %}
+          <div class="px-5 py-8">
+            {% include "components/empty_state.html" with title="No notifications" description="You are all caught up." %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 {% endblock %}

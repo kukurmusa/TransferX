@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "apps.world.apps.WorldConfig",
     "apps.marketplace.apps.MarketplaceConfig",
     "apps.scouting.apps.ScoutingConfig",
+    "apps.notifications.apps.NotificationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.marketplace.context_processors.offer_unread_counts",
+                "apps.notifications.views.notifications_unread_context",
             ],
         },
     }
@@ -90,7 +93,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "dashboard"
+LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "login"
 
 APISPORTS_KEY = get_env("APISPORTS_KEY")
