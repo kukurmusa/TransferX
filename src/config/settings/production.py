@@ -1,3 +1,5 @@
+import os
+
 import dj_database_url
 
 from .base import *  # noqa: F403
@@ -22,18 +24,24 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 # ── Database ──────────────────────────────────────────────────────────────────
-# Railway provides DATABASE_URL automatically when a Postgres service is linked.
-# Falls back to the individual POSTGRES_* vars from base.py if DATABASE_URL is absent.
+# Railway injects DATABASE_URL automatically when a Postgres service is linked.
+# A missing DATABASE_URL is a hard failure — we never fall back to POSTGRES_*
+# vars in production (those point to "db" which doesn't exist on Railway).
 
-_database_url = get_env("DATABASE_URL")  # noqa: F405
-if _database_url:
-    DATABASES = {  # noqa: F405
-        "default": dj_database_url.parse(
-            _database_url,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
+_database_url = os.environ.get("DATABASE_URL")
+if not _database_url:
+    raise RuntimeError(
+        "DATABASE_URL environment variable is not set. "
+        "Link the Postgres service in Railway or set DATABASE_URL explicitly."
+    )
+
+DATABASES = {
+    "default": dj_database_url.parse(
+        _database_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 # ── Static files (Whitenoise) ─────────────────────────────────────────────────
 

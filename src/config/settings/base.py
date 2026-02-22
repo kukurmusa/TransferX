@@ -63,16 +63,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": get_env("POSTGRES_DB", "transferx"),
-        "USER": get_env("POSTGRES_USER", "transferx"),
-        "PASSWORD": get_env("POSTGRES_PASSWORD", "transferx"),
-        "HOST": get_env("POSTGRES_HOST", "localhost"),
-        "PORT": get_env("POSTGRES_PORT", "5432"),
+import os as _os
+
+if "production" not in _os.environ.get("DJANGO_SETTINGS_MODULE", ""):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": get_env("POSTGRES_DB", "transferx"),
+            "USER": get_env("POSTGRES_USER", "transferx"),
+            "PASSWORD": get_env("POSTGRES_PASSWORD", "transferx"),
+            "HOST": get_env("POSTGRES_HOST", "localhost"),
+            "PORT": get_env("POSTGRES_PORT", "5432"),
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
