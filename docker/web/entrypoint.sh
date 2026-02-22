@@ -10,6 +10,8 @@ echo "=== Running migrations ==="
 python src/manage.py migrate
 echo "=== Seeding demo users ==="
 python src/manage.py seed_demo
+echo "=== Resetting demo passwords ==="
+python src/manage.py reset_demo_passwords
 echo "=== Starting gunicorn ==="
 exec gunicorn config.wsgi:application \
     --bind 0.0.0.0:${PORT:-8000} \
