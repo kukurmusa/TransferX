@@ -13,3 +13,7 @@ RUN pip install --no-cache-dir --upgrade pip   && pip install --no-cache-dir .
 COPY . /app
 
 RUN chmod +x /app/docker/web/entrypoint.sh
+RUN sed -i 's/\r//' /app/docker/web/entrypoint.sh
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
