@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.marketplace.services import get_actor_club
+from apps.notifications.models import Notification
+from apps.notifications.utils import create_notification
 from .models import Deal, DealNote
 
 
@@ -22,11 +24,9 @@ def deal_list(request):
         raise PermissionDenied("Club profile required.")
     deals = (
         Deal.objects.select_related("player", "buyer_club", "seller_club", "offer")
-        .filter(buyer_club=club) | Deal.objects.select_related(
-            "player", "buyer_club", "seller_club", "offer"
-        ).filter(seller_club=club)
+        .filter(models.Q(buyer_club=club) | models.Q(seller_club=club))
+        .order_by("-created_at")
     )
-    deals = deals.order_by("-created_at")
     return render(request, "deals/deal_list.html", {"deals": deals, "club": club})
 
 
@@ -97,6 +97,17 @@ def deal_advance(request, pk: int):
                     deal.status = Deal.Status.COMPLETED
                     deal.completed_at = timezone.now()
                 deal.save(update_fields=["stage", "status", "completed_at"])
+                if deal.stage == Deal.Stage.COMPLETED:
+                    msg = f"Deal completed: {deal.player.name} to {deal.buyer_club.name}."
+                    for recipient_club in (deal.buyer_club, deal.seller_club):
+                        if recipient_club and recipient_club.user:
+                            create_notification(
+                                recipient=recipient_club.user,
+                                type=Notification.Type.DEAL_COMPLETED,
+                                message=msg,
+                                link=f"/deals/{deal.id}/",
+                                related_player=deal.player,
+                            )
     return redirect("deals:detail", pk=pk)
 
 

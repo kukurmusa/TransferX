@@ -1,3 +1,7 @@
+# World views are intentionally public (no login_required).
+# They expose aggregated league/squad stats sourced from the vendor API,
+# equivalent to data available on public football statistics sites.
+# If the product moves to a gated data model, add @login_required here.
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404, render

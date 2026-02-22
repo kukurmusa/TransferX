@@ -5,8 +5,6 @@ from . import views
 app_name = "marketplace"
 
 urlpatterns = [
-    path("listings/", views.listing_list, name="listing_list"),
-    path("offers/", views.offer_received_list, name="offer_received"),
     path("offers/received/", views.offer_received_list, name="offer_received"),
     path("offers/sent/", views.offer_sent_list, name="offer_sent"),
     path("offers/new/", views.offer_new, name="offer_new"),

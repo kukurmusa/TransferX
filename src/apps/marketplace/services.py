@@ -61,6 +61,7 @@ def get_actor_club(user) -> Club | None:
 
 
 def close_offer_if_expired(offer: Offer, now: datetime | None = None) -> bool:
+    # Cheap pre-flight checks on the in-memory object — no DB hit.
     if offer.status not in {Offer.Status.SENT, Offer.Status.COUNTERED}:
         return False
     if not offer.expires_at:
@@ -68,13 +69,25 @@ def close_offer_if_expired(offer: Offer, now: datetime | None = None) -> bool:
     now = now or timezone.now()
     if offer.expires_at > now:
         return False
+
+    # Re-fetch the row under a lock so two concurrent requests can't both
+    # write an EXPIRED status and create two OfferEvent rows.
+    with transaction.atomic():
+        locked = Offer.objects.select_for_update().get(pk=offer.pk)
+        if locked.status not in {Offer.Status.SENT, Offer.Status.COUNTERED}:
+            return False
+        if not locked.expires_at or locked.expires_at > now:
+            return False
+
+        locked.status = Offer.Status.EXPIRED
+        locked.save(update_fields=["status", "last_action_at"])
+        OfferEvent.objects.create(
+            offer=locked,
+            event_type=OfferEvent.EventType.EXPIRED,
+            payload={"expired_at": now.isoformat()},
+        )
+    # Keep the caller's in-memory object consistent.
     offer.status = Offer.Status.EXPIRED
-    offer.save(update_fields=["status", "last_action_at"])
-    OfferEvent.objects.create(
-        offer=offer,
-        event_type=OfferEvent.EventType.EXPIRED,
-        payload={"expired_at": now.isoformat()},
-    )
     return True
 
 

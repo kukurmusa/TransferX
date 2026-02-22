@@ -25,16 +25,6 @@ from .services import (
 )
 
 
-def listing_list(request):
-    listings = (
-        Listing.objects.select_related("player", "listed_by_club")
-        .filter(status=Listing.Status.OPEN)
-        .order_by("-created_at")
-    )
-    paginator = Paginator(listings, 25)
-    page = paginator.get_page(request.GET.get("page"))
-    return render(request, "marketplace/listing_list.html", {"page_obj": page})
-
 
 @login_required
 def player_market_list(request):
@@ -538,6 +528,10 @@ def offer_new(request):
     player = get_object_or_404(Player, pk=player_id)
     listing = Listing.objects.filter(pk=listing_id).first() if listing_id else None
     to_club = player.current_club if player.current_club_id else None
+
+    if to_club and to_club.id == club.id:
+        messages.error(request, "You cannot make an offer on your own player.")
+        return redirect("marketplace:listing_hub_list")
 
     if request.method == "POST":
         form = OfferForm(request.POST)

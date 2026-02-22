@@ -186,46 +186,6 @@ def _auction_rows(user, club, now):
     return rows
 
 
-def _offer_rows(club):
-    if not club:
-        return []
-
-    offers = (
-        Offer.objects.select_related("player", "from_club", "to_club")
-        .filter(
-            Q(to_club=club) | Q(from_club=club),
-            status__in=[Offer.Status.SENT, Offer.Status.COUNTERED],
-        )
-        .order_by("-last_action_at")[:10]
-    )
-
-    rows = []
-    for offer in offers:
-        is_incoming = offer.to_club_id == club.id
-        counterparty = offer.from_club if is_incoming else offer.to_club
-
-        if offer.status == Offer.Status.COUNTERED:
-            status_label = "Countered"
-        elif is_incoming:
-            status_label = "Action Needed"
-        else:
-            status_label = "Awaiting Reply"
-
-        rows.append(
-            {
-                "offer": offer,
-                "player": offer.player,
-                "counterparty": counterparty,
-                "is_incoming": is_incoming,
-                "status_label": status_label,
-                "expires_at_iso": (
-                    offer.expires_at.isoformat() if offer.expires_at else None
-                ),
-            }
-        )
-
-    return rows
-
 
 def _scouting_alerts(club):
     if not club:

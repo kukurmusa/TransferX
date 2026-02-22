@@ -50,7 +50,7 @@ class Player(models.Model):
 class Contract(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="contracts")
     club = models.ForeignKey(
-        "accounts.Club", on_delete=models.CASCADE, related_name="contracts"
+        "accounts.Club", on_delete=models.PROTECT, related_name="contracts"
     )
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

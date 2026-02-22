@@ -135,6 +135,45 @@ def test_min_increment_enforced(client, seller_user, buyer_user):
 
 
 @pytest.mark.django_db
+def test_min_increment_error_message_not_500(client, seller_user, buyer_user):
+    """Regression: validate_bid_amount previously raised NameError when a bid
+    fell below the minimum increment, returning a 500 instead of 403."""
+    player = Player.objects.create(
+        name="Player Increment",
+        age=22,
+        position=Player.Position.MID,
+        current_club=seller_user.club,
+        created_by=seller_user,
+    )
+    auction = Auction.objects.create(
+        player=player,
+        seller=seller_user,
+        deadline=timezone.now() + timedelta(days=1),
+        min_increment=Decimal("10.00"),
+    )
+    ClubFinance.objects.filter(club=buyer_user.club).update(
+        transfer_budget_total="1000.00", wage_budget_total_weekly="100.00"
+    )
+    client.force_login(buyer_user)
+
+    # Place an initial valid bid
+    response = client.post(
+        reverse("auctions:place_bid", args=[auction.id]),
+        {"amount": "100.00", "wage_offer_weekly": "5.00"},
+    )
+    assert response.status_code == 302
+
+    # Submit a second bid that is above the current best but below best + increment
+    # (100 + 10 = 110 minimum; 105 should fail with 403, not 500)
+    response = client.post(
+        reverse("auctions:place_bid", args=[auction.id]),
+        {"amount": "105.00", "wage_offer_weekly": "5.00"},
+    )
+    assert response.status_code == 403
+    assert "110.00" in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_auto_close_on_deadline_blocks_bids(client, seller_user, buyer_user):
     player = Player.objects.create(
         name="Player Close",

@@ -12,11 +12,6 @@ urlpatterns = [
         dashboard_auctions_partial,
         name="dashboard_auctions_partial",
     ),
-    path(
-        "dashboard/partials/auctions/",
-        dashboard_auctions_partial,
-        name="dashboard_auctions_partial_v2",
-    ),
     path("", include("apps.marketplace.discovery_urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("players/", include("apps.players.urls")),

@@ -83,16 +83,13 @@ def validate_bid_amount(auction: Auction, amount) -> None:
         close_if_expired(auction, now=now)
         raise ValidationError("Auction has ended")
 
-    minimum_next = get_minimum_next_bid(auction)
-    if minimum_next is not None:
-        required = minimum_next
+    best = get_best_bid_amount(auction)
+    if best is not None and auction.min_increment:
+        required = best + auction.min_increment
         if amount < required:
-            required_display = f"{required:.2f}"
-            best_display = f"{best:.2f}"
-            increment_display = f"{auction.min_increment:.2f}"
             raise ValidationError(
-                "Bid must be at least £"
-                f"{required_display} (current best £{best_display} + minimum increment £{increment_display})."
+                f"Bid must be at least £{required:.2f} "
+                f"(current best £{best:.2f} + minimum increment £{auction.min_increment:.2f})."
             )
 
 
