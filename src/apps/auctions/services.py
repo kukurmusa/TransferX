@@ -217,9 +217,16 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
 
 
 @transaction.atomic
-def accept_bid(auction: Auction, bid: Bid, actor) -> None:
+def accept_bid(auction: Auction, bid: Bid, actor):
+    from django.contrib.auth import get_user_model
+    from apps.deals.models import Deal
+
     now = timezone.now()
-    auction = Auction.objects.select_for_update().get(pk=auction.pk)
+    auction = (
+        Auction.objects.select_for_update(of=("self",))
+        .select_related("seller__club", "player")
+        .get(pk=auction.pk)
+    )
     close_if_expired(auction, now=now)
     if auction.status != Auction.Status.OPEN:
         raise PermissionDenied("Auction is not open")
@@ -281,6 +288,48 @@ def accept_bid(auction: Auction, bid: Bid, actor) -> None:
             "committed_wage_weekly": str(bid.reserved_wage_weekly),
         },
     )
+
+    # Create a pending deal room — actual transfer is completed by staff.
+    buyer_club = bid.buyer.club
+    seller_club = auction.seller.club
+    deal = Deal.objects.create(
+        auction=auction,
+        player=auction.player,
+        buyer_club=buyer_club,
+        seller_club=seller_club,
+        agreed_fee=bid.amount,
+        agreed_wage=bid.wage_offer_weekly,
+        status=Deal.Status.PENDING_COMPLETION,
+    )
+
+    fee_str = f"£{bid.amount:,.0f}"
+    msg = (
+        f"Auction completed — {auction.player.name}, agreed fee {fee_str}. "
+        f"Awaiting off-platform completion. Deal #{deal.id}"
+    )
+    recipients = [
+        buyer_club.user if buyer_club else None,
+        seller_club.user if seller_club else None,
+    ]
+    for recipient in filter(None, recipients):
+        create_notification(
+            recipient=recipient,
+            type=Notification.Type.AUCTION_BID_ACCEPTED,
+            message=msg,
+            link=f"/deals/{deal.id}/",
+            related_player=auction.player,
+        )
+    User = get_user_model()
+    for staff_user in User.objects.filter(is_staff=True):
+        create_notification(
+            recipient=staff_user,
+            type=Notification.Type.AUCTION_BID_ACCEPTED,
+            message=msg,
+            link=f"/deals/{deal.id}/",
+            related_player=auction.player,
+        )
+
+    return deal
 
 
 def _maybe_extend_deadline(auction: Auction, now) -> None:
