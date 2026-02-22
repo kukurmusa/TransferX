@@ -85,7 +85,7 @@
                 <div class="min-w-0">
                   <div class="truncate text-sm font-semibold text-white">{{ item.player.name }}</div>
                   <div class="truncate text-xs text-slate-500">
-                    {% if item.player.current_club %}{{ item.player.current_club.club_name }}{% else %}Free agent{% endif %}
+                    {% if item.player.current_club %}{{ item.player.current_club.name }}{% else %}Free agent{% endif %}
                   </div>
                 </div>
                 <span class="shrink-0 text-xs text-slate-600">P{{ item.priority }}</span>

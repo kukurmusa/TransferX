@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}{{ club.club_name }} | TransferX{% endblock %}
+{% block title %}{{ club.name }} | TransferX{% endblock %}
 
-{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ club.club_name }}</h1>{% endblock %}
+{% block page_title %}<h1 class="text-2xl font-semibold text-white">{{ club.name }}</h1>{% endblock %}
 {% block page_subtitle %}<p class="text-sm text-slate-400">Club profile</p>{% endblock %}
 
 {% block content %}
@@ -12,10 +12,10 @@
       <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <div class="flex flex-wrap items-center gap-4">
           {% if club.crest_url %}
-            <img src="{{ club.crest_url }}" alt="{{ club.club_name }}" class="h-16 w-16 rounded-full bg-slate-800 ring-1 ring-white/[0.08]" />
+            <img src="{{ club.crest_url }}" alt="{{ club.name }}" class="h-16 w-16 rounded-full bg-slate-800 ring-1 ring-white/[0.08]" />
           {% endif %}
           <div>
-            <div class="text-xl font-semibold text-white">{{ club.club_name }}</div>
+            <div class="text-xl font-semibold text-white">{{ club.name }}</div>
             <div class="text-sm text-slate-400">{{ club.league_name|default:"-" }} | {{ club.country|default:"-" }}</div>
             <div class="mt-1.5">
               {% if club.verified_status == "VERIFIED" %}

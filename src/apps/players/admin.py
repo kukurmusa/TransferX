@@ -24,7 +24,7 @@ class PlayerAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("position", "status", "visibility", "open_to_offers", "created_at")
-    search_fields = ("name", "current_club__club_name", "created_by__username")
+    search_fields = ("name", "current_club__name", "created_by__username")
     inlines = [ContractInline]
 
     def save_model(self, request, obj, form, change):
@@ -36,4 +36,4 @@ class PlayerAdmin(admin.ModelAdmin):
 class ContractAdmin(admin.ModelAdmin):
     list_display = ("player", "club", "is_active", "start_date", "end_date")
     list_filter = ("is_active", "club", "end_date")
-    search_fields = ("player__name", "club__club_name")
+    search_fields = ("player__name", "club__name")

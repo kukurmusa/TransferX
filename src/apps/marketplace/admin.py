@@ -7,13 +7,13 @@ from .models import Listing, ListingInvite, Offer, OfferEvent, OfferMessage
 class ListingAdmin(admin.ModelAdmin):
     list_display = ("player", "listing_type", "status", "visibility", "asking_price", "deadline")
     list_filter = ("listing_type", "status", "visibility")
-    search_fields = ("player__name", "listed_by_club__club_name")
+    search_fields = ("player__name", "listed_by_club__name")
 
 
 @admin.register(ListingInvite)
 class ListingInviteAdmin(admin.ModelAdmin):
     list_display = ("listing", "club", "created_at")
-    search_fields = ("listing__player__name", "club__club_name")
+    search_fields = ("listing__player__name", "club__name")
 
 
 class OfferEventInline(admin.TabularInline):
@@ -41,7 +41,7 @@ class OfferAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("status", "to_club", "from_club")
-    search_fields = ("player__name", "from_club__club_name", "to_club__club_name")
+    search_fields = ("player__name", "from_club__name", "to_club__name")
     inlines = [OfferEventInline, OfferMessageInline]
 
 

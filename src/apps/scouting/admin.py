@@ -6,7 +6,7 @@ from .models import PlayerInterest, Shortlist, ShortlistItem
 @admin.register(Shortlist)
 class ShortlistAdmin(admin.ModelAdmin):
     list_display = ("name", "club", "updated_at")
-    search_fields = ("name", "club__club_name")
+    search_fields = ("name", "club__name")
 
 
 @admin.register(ShortlistItem)
@@ -20,4 +20,4 @@ class ShortlistItemAdmin(admin.ModelAdmin):
 class PlayerInterestAdmin(admin.ModelAdmin):
     list_display = ("club", "player", "level", "stage", "last_touched_at")
     list_filter = ("level", "stage", "club")
-    search_fields = ("player__name", "club__club_name")
+    search_fields = ("player__name", "club__name")

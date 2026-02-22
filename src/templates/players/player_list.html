@@ -45,7 +45,7 @@
           <div class="mt-7">
             <div class="text-base font-semibold text-white group-hover:text-emerald-400 transition-colors">{{ player.name }}</div>
             <div class="mt-0.5 text-sm text-slate-400">Age {{ player.age|default:"-" }}</div>
-            <div class="mt-0.5 text-xs text-slate-500">{{ player.current_club.club_name|default:"No club" }}</div>
+            <div class="mt-0.5 text-xs text-slate-500">{{ player.current_club.name|default:"No club" }}</div>
           </div>
 
           {# Form score + bar #}

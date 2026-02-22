@@ -8,7 +8,7 @@
           <div class="text-sm text-slate-400">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
           <div class="text-xs text-slate-500">Nationality: {{ player.nationality|default:"-" }}</div>
           <div class="text-xs text-slate-500">
-            {% if player.current_club %}Club: {{ player.current_club.club_name }}{% else %}Free agent{% endif %}
+            {% if player.current_club %}Club: {{ player.current_club.name }}{% else %}Free agent{% endif %}
           </div>
         </div>
         <div class="text-right">
