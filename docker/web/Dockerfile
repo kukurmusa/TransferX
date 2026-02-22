@@ -17,3 +17,5 @@ RUN sed -i 's/\r//' /app/docker/web/entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+
+CMD ["/bin/bash", "/app/docker/web/entrypoint.sh"]
