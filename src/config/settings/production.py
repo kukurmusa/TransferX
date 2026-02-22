@@ -63,7 +63,11 @@ MIDDLEWARE = [  # noqa: F405
 
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # CompressedStaticFilesStorage compresses files (gzip/brotli) but does
+        # NOT rewrite URL references inside CSS. CompressedManifestStaticFilesStorage
+        # would attempt to resolve `@import "tailwindcss"` in src/input.css as a
+        # file path and crash with MissingFileError.
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
