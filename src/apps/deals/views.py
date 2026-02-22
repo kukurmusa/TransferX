@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.marketplace.services import get_actor_club
 from apps.notifications.models import Notification
 from apps.notifications.utils import create_notification
+from apps.players.services import create_contract
 from .models import Deal, DealNote
 
 
@@ -92,7 +93,7 @@ def deal_advance(request, pk: int):
         with transaction.atomic():
             deal = (
                 Deal.objects.select_for_update()
-                .select_related("player", "buyer_club", "seller_club")
+                .select_related("player", "buyer_club", "seller_club", "offer")
                 .get(pk=pk)
             )
             if deal.stage in order:
@@ -104,6 +105,18 @@ def deal_advance(request, pk: int):
                         deal.completed_at = timezone.now()
                     deal.save(update_fields=["stage", "status", "completed_at"])
                     if deal.stage == Deal.Stage.COMPLETED:
+                        # Transfer the player: deactivate old contract, create new one,
+                        # and update player.current_club to the buyer club.
+                        contract_end_date = (
+                            deal.offer.contract_end_date if deal.offer_id else None
+                        )
+                        create_contract(
+                            player=deal.player,
+                            club=deal.buyer_club,
+                            start_date=deal.completed_at.date(),
+                            end_date=contract_end_date,
+                            wage_weekly=deal.agreed_wage,
+                        )
                         msg = f"Deal completed: {deal.player.name} to {deal.buyer_club.name}."
                         for recipient_club in (deal.buyer_club, deal.seller_club):
                             if recipient_club and recipient_club.user:
