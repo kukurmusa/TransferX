@@ -8,8 +8,10 @@ from .base import *  # noqa: F403
 
 DEBUG = False
 
-# ALLOWED_HOSTS is already populated from the ALLOWED_HOSTS env var in base.py.
+# ALLOWED_HOSTS is populated from the ALLOWED_HOSTS env var in base.py.
 # Railway injects the public hostname; set it there.
+# healthcheck.railway.app is Railway's internal healthcheck host — always allow it.
+ALLOWED_HOSTS += ["healthcheck.railway.app"]  # noqa: F405
 
 # Required so Django generates correct absolute URLs behind Railway's proxy.
 CSRF_TRUSTED_ORIGINS = get_list("CSRF_TRUSTED_ORIGINS", [])  # noqa: F405
