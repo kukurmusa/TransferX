@@ -1,12 +1,20 @@
-#\!/usr/bin/env sh
+#!/bin/bash
 set -e
 
-python scripts/wait_for_db.py
-python src/manage.py migrate --noinput
+echo "=== Starting TransferX ==="
+
+echo "=== Collecting static files ==="
 python src/manage.py collectstatic --noinput
 
-if [ "$#" -gt 0 ]; then
-  exec "$@"
-fi
+echo "=== Running migrations ==="
+python src/manage.py migrate
 
-exec gunicorn config.wsgi:application \n  --bind "0.0.0.0:${PORT:-8000}" \n  --workers "${GUNICORN_WORKERS:-2}" \n  --timeout "${GUNICORN_TIMEOUT:-120}"
+echo "=== Starting gunicorn ==="
+exec gunicorn config.wsgi:application \
+  --bind 0.0.0.0:${PORT:-8000} \
+  --workers 2 \
+  --timeout 120 \
+  --log-level debug \
+  --access-logfile - \
+  --error-logfile - \
+  --chdir src
