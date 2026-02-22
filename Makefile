@@ -5,7 +5,7 @@ down:
 	docker compose down -v
 
 dev:
-	python src/manage.py runserver
+	python src/manage.py runserver 0.0.0.0:8000
 
 migrate:
 	python src/manage.py migrate

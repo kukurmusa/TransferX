@@ -7,7 +7,7 @@
   <h1 class="text-2xl font-semibold text-white">{{ deal.player.name }}</h1>
 {% endblock %}
 {% block page_subtitle %}
-  <p class="text-sm text-slate-400">Deal room between {{ deal.buyer_club.name }} and {{ deal.seller_club.name }}</p>
+  <p class="text-sm text-slate-400">Deal room &mdash; {{ deal.buyer_club.name }} &rarr; {{ deal.seller_club.name }}</p>
 {% endblock %}
 {% block page_actions %}
   <span class="inline-flex items-center rounded-full border border-white/10 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
@@ -16,45 +16,79 @@
 {% endblock %}
 
 {% block content %}
+
+  {# ── Agreed terms header ─────────────────────────────────────────── #}
   <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
         <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Agreed fee</div>
         <div class="mt-2 text-2xl font-semibold text-emerald-200">
-          {% if deal.agreed_fee %}GBP {{ deal.agreed_fee|floatformat:0|intcomma }}{% else %}Negotiated{% endif %}
+          {% if deal.agreed_fee %}GBP {{ deal.agreed_fee|floatformat:0|intcomma }}{% else %}TBD{% endif %}
         </div>
       </div>
       <div class="text-right text-sm text-slate-400">
-        <div>{{ deal.buyer_club.name }} → {{ deal.seller_club.name }}</div>
-        <div class="mt-1">Wage: {% if deal.agreed_wage %}GBP {{ deal.agreed_wage|floatformat:0|intcomma }}{% else %}-{% endif %}</div>
+        <div>{{ deal.buyer_club.name }} &rarr; {{ deal.seller_club.name }}</div>
+        <div class="mt-1">Wage: {% if deal.agreed_wage %}GBP {{ deal.agreed_wage|floatformat:0|intcomma %}}/wk{% else %}&mdash;{% endif %}</div>
+        {% if is_auction_deal %}
+          <div class="mt-1 text-xs text-amber-400">Auction deal</div>
+        {% endif %}
       </div>
     </div>
 
-    <div class="mt-6 grid gap-3 sm:grid-cols-4">
-      {% for label in step_labels %}
-        {% with idx=forloop.counter0 %}
-          <div class="flex items-center gap-3">
-            <div class="flex h-7 w-7 items-center justify-center rounded-full border
-              {% if idx < current_step %}border-emerald-400/60 bg-emerald-500/20 text-emerald-200
-              {% elif idx == current_step %}border-emerald-400 bg-emerald-500/20 text-emerald-200
-              {% else %}border-white/10 bg-slate-800 text-slate-400{% endif %}
-            ">
-              {% if idx < current_step %}
-                <span class="text-xs">OK</span>
-              {% else %}
-                <span class="text-xs">{{ forloop.counter }}</span>
-              {% endif %}
+    {% if not is_auction_deal %}
+      {# Stage progress — only shown for offer-based collaborative deals #}
+      <div class="mt-6 grid gap-3 sm:grid-cols-4">
+        {% for label in step_labels %}
+          {% with idx=forloop.counter0 %}
+            <div class="flex items-center gap-3">
+              <div class="flex h-7 w-7 items-center justify-center rounded-full border
+                {% if idx < current_step %}border-emerald-400/60 bg-emerald-500/20 text-emerald-200
+                {% elif idx == current_step %}border-emerald-400 bg-emerald-500/20 text-emerald-200
+                {% else %}border-white/10 bg-slate-800 text-slate-400{% endif %}
+              ">
+                {% if idx < current_step %}
+                  <span class="text-xs">OK</span>
+                {% else %}
+                  <span class="text-xs">{{ forloop.counter }}</span>
+                {% endif %}
+              </div>
+              <div class="text-xs font-semibold uppercase tracking-[0.2em]
+                {% if idx <= current_step %}text-emerald-200{% else %}text-slate-500{% endif %}
+              ">{{ label }}</div>
             </div>
-            <div class="text-xs font-semibold uppercase tracking-[0.2em]
-              {% if idx <= current_step %}text-emerald-200{% else %}text-slate-500{% endif %}
-            ">{{ label }}</div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {# Pending completion banner for auction deals #}
+      {% if deal.status == "PENDING_COMPLETION" %}
+        <div class="mt-6 flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-4">
+          <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+          <div>
+            <div class="text-sm font-semibold text-amber-300">Awaiting off-platform confirmation</div>
+            <div class="mt-1 text-sm text-amber-200/70">This deal is being processed by the TransferX team. You will be notified when it is confirmed.</div>
           </div>
-        {% endwith %}
-      {% endfor %}
-    </div>
+        </div>
+      {% elif deal.status == "COMPLETED" %}
+        <div class="mt-6 flex items-start gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4">
+          <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <div class="text-sm font-semibold text-emerald-300">Transfer confirmed. {{ deal.player.name }} has joined {{ deal.buyer_club.name }}.</div>
+        </div>
+      {% elif deal.status == "COLLAPSED" %}
+        <div class="mt-6 rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-semibold text-red-300">
+          This deal has been collapsed.
+        </div>
+      {% endif %}
+    {% endif %}
   </div>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[3fr_2fr]">
+
+    {# ── Notes panel ─────────────────────────────────────────────────── #}
     <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
       <h2 class="text-lg font-semibold text-white">Shared notes</h2>
       <div class="mt-4 space-y-4">
@@ -65,42 +99,72 @@
             <div class="mt-2 text-xs text-slate-500">{{ note.created_at|date:"M d, H:i" }}</div>
           </div>
         {% empty %}
-          <div class="text-sm text-slate-500">No notes yet. Add the first update.</div>
+          <div class="text-sm text-slate-500">No notes yet.</div>
         {% endfor %}
       </div>
-      <form method="post" action="{% url 'deals:add_note' deal.id %}" class="mt-5 space-y-3">
-        {% csrf_token %}
-        <textarea name="body" rows="3" class="w-full rounded-lg border border-white/10 bg-slate-900/60 text-sm text-slate-200 placeholder:text-slate-500" placeholder="Add a note for both clubs..."></textarea>
-        {% include "components/button.html" with text="Add note" variant="secondary" size="sm" %}
-      </form>
+      {% if deal.status != "COMPLETED" and deal.status != "COLLAPSED" %}
+        <form method="post" action="{% url 'deals:add_note' deal.id %}" class="mt-5 space-y-3">
+          {% csrf_token %}
+          <textarea name="body" rows="3" class="w-full rounded-lg border border-white/10 bg-slate-900/60 text-sm text-slate-200 placeholder:text-slate-500" placeholder="Add a note for both clubs..."></textarea>
+          {% include "components/button.html" with text="Add note" variant="secondary" size="sm" %}
+        </form>
+      {% endif %}
     </div>
 
+    {# ── Right sidebar ───────────────────────────────────────────────── #}
     <div class="space-y-4">
-      <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
-        <h2 class="text-lg font-semibold text-white">Actions</h2>
-        <div class="mt-4 space-y-3">
-          {% if deal.status != "COMPLETED" and deal.status != "COLLAPSED" %}
-            <form method="post" action="{% url 'deals:advance' deal.id %}">
+
+      {# Actions panel — differs by deal type #}
+      {% if not is_auction_deal %}
+        {# Offer deal: clubs can advance and collapse #}
+        <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
+          <h2 class="text-lg font-semibold text-white">Actions</h2>
+          <div class="mt-4 space-y-3">
+            {% if deal.status != "COMPLETED" and deal.status != "COLLAPSED" %}
+              <form method="post" action="{% url 'deals:advance' deal.id %}">
+                {% csrf_token %}
+                {% include "components/button.html" with text="Advance to next stage" variant="primary" size="sm" extra_classes="w-full" %}
+              </form>
+            {% endif %}
+            {% if deal.status != "COLLAPSED" and deal.status != "COMPLETED" %}
+              <form method="post" action="{% url 'deals:collapse' deal.id %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:border-red-400">
+                  Mark as Collapsed
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {# Staff inline panel — visible to staff on any deal type #}
+      {% if request.user.is_staff and deal.status != "COMPLETED" and deal.status != "COLLAPSED" %}
+        <div class="rounded-2xl border border-amber-400/20 bg-amber-500/5 p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-[0.15em] text-amber-400">Staff actions</h2>
+          <div class="mt-4 space-y-3">
+            <form method="post" action="{% url 'deals:staff_complete' deal.id %}">
               {% csrf_token %}
-              {% include "components/button.html" with text="Advance to next stage" variant="primary" size="sm" extra_classes="w-full" %}
+              {% include "components/button.html" with text="Mark as Completed" variant="primary" size="sm" extra_classes="w-full" %}
             </form>
-          {% endif %}
-          {% if deal.status != "COLLAPSED" %}
-            <form method="post" action="{% url 'deals:collapse' deal.id %}">
+            <form method="post" action="{% url 'deals:staff_collapse' deal.id %}" class="space-y-2">
               {% csrf_token %}
+              <input type="text" name="reason" placeholder="Collapse reason (optional)"
+                     class="w-full rounded-lg border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" />
               <button type="submit" class="w-full rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:border-red-400">
                 Mark as Collapsed
               </button>
             </form>
-          {% endif %}
+          </div>
         </div>
-      </div>
+      {% endif %}
 
+      {# Counterparty info #}
       <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
         <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Counterparty</div>
         <div class="mt-3 text-lg font-semibold text-white">{{ counterparty.name }}</div>
         <div class="mt-1 text-sm text-slate-400">
-          {{ counterparty.league_name|default:"" }} {% if counterparty.country %}• {{ counterparty.country }}{% endif %}
+          {{ counterparty.league_name|default:"" }}{% if counterparty.country %} &bull; {{ counterparty.country }}{% endif %}
         </div>
       </div>
     </div>

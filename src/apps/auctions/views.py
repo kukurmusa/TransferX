@@ -205,12 +205,11 @@ def accept_bid_view(request, pk: int, bid_id: int):
 
     bid = get_object_or_404(Bid, pk=bid_id)
     try:
-        accept_bid(auction, bid, request.user)
-        messages.success(request, "Bid accepted.")
+        deal = accept_bid(auction, bid, request.user)
+        messages.success(request, "Bid accepted. Deal room created — awaiting staff completion.")
+        return redirect("deals:detail", pk=deal.id)
     except (PermissionDenied, ValidationError):
         return HttpResponseForbidden("Cannot accept this bid")
-
-    return redirect("auctions:detail", pk=pk)
 
 
 @login_required

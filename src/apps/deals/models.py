@@ -4,6 +4,7 @@ from django.db import models
 class Deal(models.Model):
     class Status(models.TextChoices):
         IN_PROGRESS = "IN_PROGRESS", "In progress"
+        PENDING_COMPLETION = "PENDING_COMPLETION", "Pending completion"
         COMPLETED = "COMPLETED", "Completed"
         COLLAPSED = "COLLAPSED", "Collapsed"
 
@@ -14,7 +15,10 @@ class Deal(models.Model):
         COMPLETED = "COMPLETED", "Completed"
 
     offer = models.OneToOneField(
-        "marketplace.Offer", on_delete=models.CASCADE, related_name="deal"
+        "marketplace.Offer", null=True, blank=True, on_delete=models.CASCADE, related_name="deal"
+    )
+    auction = models.OneToOneField(
+        "auctions.Auction", null=True, blank=True, on_delete=models.PROTECT, related_name="deal"
     )
     buyer_club = models.ForeignKey(
         "accounts.Club", on_delete=models.CASCADE, related_name="deals_as_buyer"
@@ -36,6 +40,10 @@ class Deal(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+    @property
+    def is_auction_deal(self) -> bool:
+        return self.auction_id is not None
 
     def __str__(self) -> str:
         return f"Deal {self.id} - {self.player.name}"

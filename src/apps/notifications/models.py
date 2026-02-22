@@ -12,7 +12,9 @@ class Notification(models.Model):
         OFFER_EXPIRING = "OFFER_EXPIRING", "Offer expiring"
         LISTING_NEW_OFFER = "LISTING_NEW_OFFER", "Listing new offer"
         AUCTION_ENDING = "AUCTION_ENDING", "Auction ending"
+        AUCTION_BID_ACCEPTED = "AUCTION_BID_ACCEPTED", "Auction bid accepted"
         DEAL_COMPLETED = "DEAL_COMPLETED", "Deal completed"
+        DEAL_COLLAPSED = "DEAL_COLLAPSED", "Deal collapsed"
         PLAYER_AVAILABLE = "PLAYER_AVAILABLE", "Player available"
 
     recipient = models.ForeignKey(
