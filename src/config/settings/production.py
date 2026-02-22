@@ -19,7 +19,11 @@ CSRF_TRUSTED_ORIGINS = get_list("CSRF_TRUSTED_ORIGINS", [])  # noqa: F405
 # ── Security ──────────────────────────────────────────────────────────────────
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
+# Railway's load balancer already enforces HTTPS externally.
+# Keeping this True causes the internal healthchecker (plain HTTP) to get a 301
+# which Railway counts as "service unavailable". Disable it here; SSL is handled
+# at the proxy layer via SECURE_PROXY_SSL_HEADER above.
+SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SESSION_COOKIE_SECURE = True
