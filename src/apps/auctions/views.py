@@ -48,9 +48,18 @@ def auction_list(request):
         auctions = auctions.order_by("deadline")
     for auction in auctions:
         close_if_expired(auction)
-        auction.best_bid_amount = get_best_bid_amount(auction)
-        auction.minimum_next_bid = get_minimum_next_bid(auction)
-        auction.reserve_met = is_reserve_met(auction)
+        best = auction.top_bid  # pre-annotated — no extra query
+        auction.best_bid_amount = best
+        auction.minimum_next_bid = (
+            best + auction.min_increment
+            if best is not None and auction.min_increment
+            else None
+        )
+        auction.reserve_met = (
+            best >= auction.reserve_price
+            if best is not None and auction.reserve_price is not None
+            else None
+        )
     return render(
         request,
         "auctions/auction_list.html",

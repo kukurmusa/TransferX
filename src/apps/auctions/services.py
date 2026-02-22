@@ -265,10 +265,6 @@ def accept_bid(auction: Auction, bid: Bid, actor) -> None:
         other.status = Bid.Status.REJECTED
         other.save(update_fields=["status"])
 
-    Bid.objects.filter(auction=auction, status=Bid.Status.ACTIVE).exclude(pk=bid.pk).update(
-        status=Bid.Status.REJECTED
-    )
-
     below_reserve = False
     if auction.reserve_price is not None and bid.amount < auction.reserve_price:
         below_reserve = True

@@ -13,10 +13,10 @@ class Auction(models.Model):
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="auctions"
     )
-    deadline = models.DateTimeField()
+    deadline = models.DateTimeField(db_index=True)
     reserve_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     min_increment = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN, db_index=True)
     accepted_bid = models.OneToOneField(
         "auctions.Bid", null=True, blank=True, on_delete=models.SET_NULL, related_name="accepted_for"
     )

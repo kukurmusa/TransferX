@@ -351,7 +351,7 @@ def _offer_thread_context(
             }
         )
 
-    last_event = offer.events.order_by("-created_at").first()
+    last_event = events[-1]["event"] if events else None
     pending = offer.status in {Offer.Status.SENT, Offer.Status.COUNTERED}
     is_participant = club.id in {offer.from_club_id, offer.to_club_id}
     your_turn = bool(
@@ -406,6 +406,7 @@ def offer_received_list(request):
     last_event = OfferEvent.objects.filter(offer_id=OuterRef("pk")).order_by("-created_at")
     offers = (
         Offer.objects.select_related("player", "from_club", "to_club")
+        .prefetch_related("messages")
         .filter(to_club=club)
         .annotate(
             last_actor_club_id=Subquery(last_event.values("actor_club_id")[:1]),
@@ -447,6 +448,7 @@ def offer_sent_list(request):
     last_event = OfferEvent.objects.filter(offer_id=OuterRef("pk")).order_by("-created_at")
     offers = (
         Offer.objects.select_related("player", "from_club", "to_club")
+        .prefetch_related("messages")
         .filter(from_club=club)
         .annotate(
             last_actor_club_id=Subquery(last_event.values("actor_club_id")[:1]),
