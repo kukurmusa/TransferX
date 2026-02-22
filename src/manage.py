@@ -10,7 +10,9 @@ except ImportError:  # pragma: no cover
 
 
 def main():
-    if load_dotenv:
+    # Skip .env loading when running inside Railway (railway run injects env vars directly).
+    # RAILWAY_ENVIRONMENT is set for both deployed containers and local `railway run` calls.
+    if load_dotenv and not os.environ.get("RAILWAY_ENVIRONMENT"):
         root = Path(__file__).resolve().parents[1]
         load_dotenv(root / ".env")
         load_dotenv(root / ".env.local", override=True)
