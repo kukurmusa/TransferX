@@ -321,11 +321,8 @@ def accept_bid(auction: Auction, bid: Bid, actor):
         f"Auction completed — {auction.player.name}, agreed fee {fee_str}. "
         f"Awaiting off-platform completion. Deal #{deal.id}"
     )
-    recipients = [
-        buyer_club.user if buyer_club else None,
-        seller_club.user if seller_club else None,
-    ]
-    for recipient in filter(None, recipients):
+    # Notify the actual transaction participants (bidder + seller), not just club owners.
+    for recipient in {bid.buyer, auction.seller} - {None}:
         create_notification(
             recipient=recipient,
             type=Notification.Type.AUCTION_BID_ACCEPTED,

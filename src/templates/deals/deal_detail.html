@@ -28,7 +28,7 @@
       </div>
       <div class="text-right text-sm text-slate-400">
         <div>{{ deal.buyer_club.name }} &rarr; {{ deal.seller_club.name }}</div>
-        <div class="mt-1">Wage: {% if deal.agreed_wage %}GBP {{ deal.agreed_wage|floatformat:0|intcomma %}}/wk{% else %}&mdash;{% endif %}</div>
+        <div class="mt-1">Wage: {% if deal.agreed_wage %}GBP {{ deal.agreed_wage|floatformat:0|intcomma }}/wk{% else %}&mdash;{% endif %}</div>
         {% if is_auction_deal %}
           <div class="mt-1 text-xs text-amber-400">Auction deal</div>
         {% endif %}
