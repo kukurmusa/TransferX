@@ -51,12 +51,16 @@ def upsert_club(
         club.city = venue_city
         club.crest_url = logo_url
         club.save(update_fields=["name", "country", "city", "crest_url"])
+        if club.user:
+            buyer_group, _ = Group.objects.get_or_create(name="buyer")
+            club.user.groups.add(buyer_group)
         return club
 
     username = f"world-{_slugify(name)}-{vendor_id}"
     user, _ = User.objects.get_or_create(username=username)
     seller_group, _ = Group.objects.get_or_create(name="seller")
-    user.groups.add(seller_group)
+    buyer_group, _ = Group.objects.get_or_create(name="buyer")
+    user.groups.add(seller_group, buyer_group)
 
     return Club.objects.create(
         user=user,
