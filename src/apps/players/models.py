@@ -40,6 +40,7 @@ class Player(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_players"
     )
     vendor_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    photo_url = models.URLField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -80,6 +80,7 @@ def upsert_player(
     age: int | None = None,
     nationality: str = "",
     position: str = "",
+    photo_url: str = "",
     **extra: Any,
 ) -> Player:
     vendor_id = str(api_player_id)
@@ -87,6 +88,7 @@ def upsert_player(
         "name": name,
         "age": age,
         "nationality": nationality,
+        "photo_url": photo_url,
     }
     if position:
         pos_map = {

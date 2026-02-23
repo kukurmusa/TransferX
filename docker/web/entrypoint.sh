@@ -16,7 +16,7 @@ echo "=== Checking player data ==="
 PLAYER_COUNT=$(python src/manage.py shell --interface=python -c "from apps.players.models import Player; print(Player.objects.count())" 2>/dev/null || echo "0")
 if [ "${PLAYER_COUNT}" = "0" ]; then
     echo "=== No players found — launching background sync for top 5 leagues (2025) ==="
-    (python src/manage.py sync_world_top5 --season 2025 --leagues "39,140,135,78,61" && python src/manage.py normalize_player_status && echo "=== Background sync complete ===") &
+    (python src/manage.py sync_world_top5 --season 2025 --leagues "39,140,135,78,61" && python src/manage.py normalize_player_status && python src/manage.py assign_demo_clubs && echo "=== Background sync complete ===") &
     echo "=== Sync running in background — gunicorn will start now ==="
 else
     echo "=== Found ${PLAYER_COUNT} players — skipping sync ==="

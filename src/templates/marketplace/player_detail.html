@@ -22,13 +22,33 @@
     <div class="space-y-6">
       {# Player info #}
       <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
-        <div class="text-lg font-semibold text-white">{{ player.name }}</div>
-        <div class="text-sm text-slate-400">{{ player.get_position_display|default:"-" }} | Age {{ player.age|default:"-" }}</div>
-        <div class="text-sm text-slate-400">Nationality: {{ player.nationality|default:"-" }}</div>
+        <div class="flex items-center gap-4">
+          {% if player.photo_url %}
+            <img src="{{ player.photo_url }}" alt="{{ player.name }}" class="h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-white/10">
+          {% else %}
+            <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-slate-800 ring-2 ring-white/10 text-2xl font-bold text-slate-400">
+              {{ player.name|slice:":1" }}
+            </div>
+          {% endif %}
+          <div>
+            <div class="text-xl font-semibold text-white">{{ player.name }}</div>
+            <div class="mt-1 text-sm text-slate-400">{{ player.get_position_display|default:"-" }} &bull; Age {{ player.age|default:"-" }}</div>
+            <div class="mt-0.5 text-sm text-slate-400">{{ player.nationality|default:"-" }}</div>
+          </div>
+        </div>
         <div class="mt-4 grid gap-3 sm:grid-cols-3">
           <div class="rounded-lg bg-slate-800/60 p-3">
             <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Club</div>
-            <div class="mt-1 text-sm font-semibold text-white">{% if player.current_club %}{{ player.current_club.name }}{% else %}-{% endif %}</div>
+            <div class="mt-1 flex items-center gap-1.5">
+              {% if player.current_club %}
+                {% if player.current_club.crest_url %}
+                  <img src="{{ player.current_club.crest_url }}" alt="" class="h-4 w-4 object-contain">
+                {% endif %}
+                <span class="text-sm font-semibold text-white">{{ player.current_club.name }}</span>
+              {% else %}
+                <span class="text-sm font-semibold text-white">-</span>
+              {% endif %}
+            </div>
           </div>
           <div class="rounded-lg bg-slate-800/60 p-3">
             <div class="text-xs font-medium uppercase tracking-wider text-slate-500">Status</div>
@@ -76,13 +96,16 @@
       {# Actions #}
       <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <h2 class="text-lg font-semibold text-white">Actions</h2>
-        {% url 'marketplace:offer_new' as offer_new_url %}
+        {% url 'marketplace:offer_new' as _offer_base %}
+        {% with pid=player.id|stringformat:"d" %}
         <div class="mt-4 flex flex-col gap-2">
-          {% include "components/button.html" with text="Make offer" href=offer_new_url variant="primary" size="md" extra_classes="w-full" %}
+          {% include "components/button.html" with text="Make offer" href=_offer_base|add:"?player="|add:pid variant="primary" size="md" extra_classes="w-full" %}
           {% if listing %}
-            {% include "components/button.html" with text="View listing" href="/listings/"|add:listing.id|add:"/" variant="secondary" size="md" extra_classes="w-full" %}
+            {% url 'listing_detail' listing.id as listing_url %}
+            {% include "components/button.html" with text="View listing" href=listing_url variant="secondary" size="md" extra_classes="w-full" %}
           {% endif %}
         </div>
+        {% endwith %}
       </div>
 
       {# Scouting #}

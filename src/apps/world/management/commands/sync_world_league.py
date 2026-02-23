@@ -100,6 +100,7 @@ class Command(BaseCommand):
                             age=player_data.get("age"),
                             nationality=player_data.get("nationality", "") or "",
                             position=position,
+                            photo_url=player_data.get("photo", "") or "",
                         )
                         players_upserted += 1
 
