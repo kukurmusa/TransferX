@@ -12,8 +12,6 @@ echo "=== Seeding demo users ==="
 python src/manage.py seed_demo
 echo "=== Resetting demo passwords ==="
 python src/manage.py reset_demo_passwords
-echo "=== Checking DB and auth ==="
-python src/manage.py check_db
 echo "=== Starting gunicorn ==="
 exec gunicorn config.wsgi:application \
     --bind 0.0.0.0:${PORT:-8000} \
