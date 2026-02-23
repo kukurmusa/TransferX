@@ -277,7 +277,7 @@
     <div id="player-grid" class="space-y-6" hx-indicator="#player-grid-loading">
       {% include "marketplace/_player_market_grid.html" %}
     </div>
-    <div id="player-grid-loading" class="htmx-indicator absolute inset-0 flex items-center justify-center bg-slate-950/70 text-slate-200">
+    <div id="player-grid-loading" class="htmx-indicator pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950/70 text-slate-200">
       <div class="flex items-center gap-3 rounded-full border border-white/10 bg-slate-900/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
         <span class="h-3 w-3 animate-spin rounded-full border-2 border-slate-500 border-t-emerald-400"></span>
         Loading
