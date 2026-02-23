@@ -11,6 +11,7 @@ class Notification(models.Model):
         OFFER_COUNTERED = "OFFER_COUNTERED", "Offer countered"
         OFFER_EXPIRING = "OFFER_EXPIRING", "Offer expiring"
         LISTING_NEW_OFFER = "LISTING_NEW_OFFER", "Listing new offer"
+        AUCTION_BID_RECEIVED = "AUCTION_BID_RECEIVED", "Auction bid received"
         AUCTION_ENDING = "AUCTION_ENDING", "Auction ending"
         AUCTION_BID_ACCEPTED = "AUCTION_BID_ACCEPTED", "Auction bid accepted"
         DEAL_COMPLETED = "DEAL_COMPLETED", "Deal completed"

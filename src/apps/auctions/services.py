@@ -176,6 +176,13 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
             },
         )
         _maybe_extend_deadline(auction, now)
+        create_notification(
+            recipient=auction.seller,
+            type=Notification.Type.AUCTION_BID_RECEIVED,
+            message=f"{buyer.club.name if hasattr(buyer, 'club') else buyer.username} updated their bid to £{amount:,.0f} for {auction.player.name}.",
+            link=f"/auctions/{auction.id}/",
+            related_player=auction.player,
+        )
         if best_other and amount > best_other.amount:
             create_notification(
                 recipient=best_other.buyer,
@@ -205,6 +212,13 @@ def place_bid(auction: Auction, buyer, amount, wage_offer_weekly=None, notes="")
         payload={"amount": str(amount), "type": "new"},
     )
     _maybe_extend_deadline(auction, now)
+    create_notification(
+        recipient=auction.seller,
+        type=Notification.Type.AUCTION_BID_RECEIVED,
+        message=f"{buyer.club.name if hasattr(buyer, 'club') else buyer.username} placed a bid of £{amount:,.0f} for {auction.player.name}.",
+        link=f"/auctions/{auction.id}/",
+        related_player=auction.player,
+    )
     if best_other and amount > best_other.amount:
         create_notification(
             recipient=best_other.buyer,
