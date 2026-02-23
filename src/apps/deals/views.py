@@ -70,7 +70,7 @@ def deal_count_context(request):
         return {"deal_count": 0}
     club = user.club
     count = Deal.objects.filter(
-        status__in=[Deal.Status.IN_PROGRESS, Deal.Status.PENDING_COMPLETION],
+        status=Deal.Status.IN_PROGRESS,
     ).filter(
         models.Q(buyer_club=club) | models.Q(seller_club=club)
     ).count()
