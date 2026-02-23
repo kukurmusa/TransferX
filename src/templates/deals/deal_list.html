@@ -11,16 +11,25 @@
       {% for deal in deals %}
         {% url 'deals:detail' deal.id as deal_url %}
         <a href="{{ deal_url }}" class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-5 no-underline transition hover:-translate-y-1 hover:border-white/20">
-          <div>
-            <div class="text-lg font-semibold text-white">{{ deal.player.name }}</div>
-            <div class="text-sm text-slate-400">
-              {% if club.id == deal.buyer_club_id %}
-                Seller: {{ deal.seller_club.name }}
-              {% else %}
-                Buyer: {{ deal.buyer_club.name }}
-              {% endif %}
+          <div class="flex items-center gap-3">
+            {% if deal.player.photo_url %}
+              <img src="{{ deal.player.photo_url }}" alt="{{ deal.player.name }}" class="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-white/10">
+            {% else %}
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-800 ring-1 ring-white/10 text-sm font-bold text-slate-400">{{ deal.player.name|slice:":1" }}</div>
+            {% endif %}
+            <div>
+              <div class="text-lg font-semibold text-white">{{ deal.player.name }}</div>
+              <div class="mt-0.5 flex items-center gap-1.5 text-sm text-slate-400">
+                {% if club.id == deal.buyer_club_id %}
+                  {% if deal.seller_club.crest_url %}<img src="{{ deal.seller_club.crest_url }}" alt="" class="h-4 w-4 object-contain">{% endif %}
+                  Seller: {{ deal.seller_club.name }}
+                {% else %}
+                  {% if deal.buyer_club.crest_url %}<img src="{{ deal.buyer_club.crest_url }}" alt="" class="h-4 w-4 object-contain">{% endif %}
+                  Buyer: {{ deal.buyer_club.name }}
+                {% endif %}
+              </div>
+              <div class="mt-1 text-xs text-slate-500">Created {{ deal.created_at|date:"M d, Y" }}</div>
             </div>
-            <div class="mt-1 text-xs text-slate-500">Created {{ deal.created_at|date:"M d, Y" }}</div>
           </div>
           <div class="text-right">
             <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Agreed fee</div>
