@@ -274,7 +274,31 @@
   </form>
 
   <div class="relative">
-    <div id="player-grid" class="space-y-6" hx-indicator="#player-grid-loading">
+    {# View toggle #}
+    <div class="mb-3 flex justify-end gap-1">
+      <button
+        id="view-btn-grid"
+        onclick="setPlayerView('grid')"
+        title="Grid view"
+        class="rounded-lg border border-white/10 bg-slate-900 p-1.5 text-slate-400 transition hover:border-emerald-400/40 hover:text-emerald-300"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+      </button>
+      <button
+        id="view-btn-list"
+        onclick="setPlayerView('list')"
+        title="List view"
+        class="rounded-lg border border-white/10 bg-slate-900 p-1.5 text-slate-400 transition hover:border-emerald-400/40 hover:text-emerald-300"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="player-grid" class="space-y-3" hx-indicator="#player-grid-loading">
       {% include "marketplace/_player_market_grid.html" %}
     </div>
     <div id="player-grid-loading" class="htmx-indicator pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950/70 text-slate-200">
@@ -284,4 +308,39 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function applyPlayerView(mode) {
+    document.querySelectorAll('#player-grid [data-view]').forEach(el => {
+      el.classList.toggle('hidden', el.dataset.view !== mode);
+    });
+    const btnGrid = document.getElementById('view-btn-grid');
+    const btnList = document.getElementById('view-btn-list');
+    if (btnGrid && btnList) {
+      [btnGrid, btnList].forEach(b => {
+        b.classList.remove('border-emerald-400/40', 'text-emerald-300', 'border-white/10', 'text-slate-400');
+      });
+      const activeBtn = mode === 'grid' ? btnGrid : btnList;
+      const inactiveBtn = mode === 'grid' ? btnList : btnGrid;
+      activeBtn.classList.add('border-emerald-400/40', 'text-emerald-300');
+      inactiveBtn.classList.add('border-white/10', 'text-slate-400');
+    }
+  }
+
+  function setPlayerView(mode) {
+    localStorage.setItem('player-view', mode);
+    applyPlayerView(mode);
+  }
+
+  function initPlayerView() {
+    applyPlayerView(localStorage.getItem('player-view') || 'grid');
+  }
+
+  initPlayerView();
+  document.addEventListener('htmx:afterSwap', e => {
+    if (e.detail.target.id === 'player-grid') initPlayerView();
+  });
+</script>
 {% endblock %}

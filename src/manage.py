@@ -14,8 +14,10 @@ def main():
     # RAILWAY_ENVIRONMENT is set for both deployed containers and local `railway run` calls.
     if load_dotenv and not os.environ.get("RAILWAY_ENVIRONMENT"):
         root = Path(__file__).resolve().parents[1]
+        # Load .env.local first so it takes priority over .env locally.
+        # No override=True — OS/Docker env vars always win over dotenv files.
+        load_dotenv(root / ".env.local")
         load_dotenv(root / ".env")
-        load_dotenv(root / ".env.local", override=True)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
     try:
         from django.core.management import execute_from_command_line

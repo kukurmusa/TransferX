@@ -96,10 +96,10 @@
       {# Actions #}
       <div class="rounded-xl bg-slate-900 p-6 ring-1 ring-white/[0.08]">
         <h2 class="text-lg font-semibold text-white">Actions</h2>
-        {% url 'marketplace:offer_new' as _offer_base %}
+        {% url 'marketplace:offer_new' as offer_base %}
         {% with pid=player.id|stringformat:"d" %}
         <div class="mt-4 flex flex-col gap-2">
-          {% include "components/button.html" with text="Make offer" href=_offer_base|add:"?player="|add:pid variant="primary" size="md" extra_classes="w-full" %}
+          {% include "components/button.html" with text="Make offer" href=offer_base|add:"?player="|add:pid variant="primary" size="md" extra_classes="w-full" %}
           {% if listing %}
             {% url 'listing_detail' listing.id as listing_url %}
             {% include "components/button.html" with text="View listing" href=listing_url variant="secondary" size="md" extra_classes="w-full" %}
